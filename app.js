@@ -4,7 +4,7 @@ class ApiService {
         // FIXED: Updated with your actual backend URL
         this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5000/api'
-            : 'https://TheMathematicsTuitorials-backend-k9fr.onrender.com/api'; // ✅ Your actual backend URL
+            : 'https://eduplatform-backend-k9fr.onrender.com/api'; // ✅ Your actual backend URL
         
         this.token = localStorage.getItem('authToken');
         console.log('🔧 API Service initialized with base URL:', this.baseURL);
