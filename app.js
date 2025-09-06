@@ -1,10 +1,10 @@
 // API Service Class
 class ApiService {
     constructor() {
-        // Automatically detect environment
+        // FIXED: Updated with your actual backend URL
         this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5000/api'
-            : 'https://eduplatform-backend-k9fr.onrender.com'; // 👈 UPDATE THIS with your actual backend URL
+            : 'https://eduplatform-backend-k9fr.onrender.com/api'; // ✅ Your actual backend URL
         
         this.token = localStorage.getItem('authToken');
         console.log('🔧 API Service initialized with base URL:', this.baseURL);
@@ -40,12 +40,20 @@ class ApiService {
 
             console.log('📡 Making request to:', url);
             const response = await fetch(url, config);
-            const data = await response.json();
-
+            
+            // Check if response is ok
             if (!response.ok) {
-                throw new Error(data.error || 'Request failed');
+                let errorMessage = 'Request failed';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error || errorMessage;
+                } catch (e) {
+                    errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
-
+            
+            const data = await response.json();
             return data;
         } catch (error) {
             console.error('❌ API Request Error:', error);
@@ -108,11 +116,18 @@ class ApiService {
             body: formData
         });
 
-        const data = await response.json();
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to create resource');
+            let errorMessage = 'Failed to create resource';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
-        return data;
+        
+        return await response.json();
     }
     
     async deleteResource(id) {
