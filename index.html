@@ -1,92 +1,111 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TheMathematicsTuitorials - Modern Learning Management System</title>
-    <meta name="description" content="Modern educational platform for teachers and students with resource management, scheduling, and interactive learning tools.">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>Educational Platform - TMT Shashi</title>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Login Screen -->
-    <div id="loginScreen" class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo-container">
-                    <i class="fas fa-graduation-cap logo-icon"></i>
-                    <h1>TheMathematicsTuitorials</h1>
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo-container">
+                        <i class="fas fa-graduation-cap logo-icon"></i>
+                    </div>
+                    <h1>Educational Platform</h1>
+                    <p>Welcome to TMT Shashi Learning Platform</p>
                 </div>
-                <p>Modern Learning Management System</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="loginEmail">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <input 
+                            type="email" 
+                            id="loginEmail" 
+                            name="email" 
+                            class="form-control" 
+                            placeholder="Enter your email"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input 
+                            type="password" 
+                            id="loginPassword" 
+                            name="password" 
+                            class="form-control" 
+                            placeholder="Enter your password"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="error-message hidden" id="loginError"></div>
+                    
+                    <button type="submit" id="loginBtn" class="btn btn--primary btn--full-width">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </form>
+                
+                <!-- Demo Credentials -->
+                <div class="demo-credentials">
+                    <h4><i class="fas fa-info-circle"></i> Demo Credentials</h4>
+                    <div class="credential-row">
+                        <strong>Teacher:</strong> <code>teachshashi@tmt.com</code> / <code>shashi12@tmt</code>
+                    </div>
+                    <div class="credential-row">
+                        <strong>Student:</strong> <code>student1@math.com</code> / <code>studentpass1</code>
+                    </div>
+                    <div class="credential-row">
+                        <strong>Student:</strong> <code>student2@math.com</code> / <code>studentpass2</code>
+                    </div>
+                </div>
             </div>
-            
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="loginEmail" class="form-label">Email Address</label>
-                    <input 
-                        type="email" 
-                        id="loginEmail" 
-                        class="form-control" 
-                        placeholder="Enter your email address"
-                        required
-                        autocomplete="email"
-                    >
-                    <i class="fas fa-envelope form-icon"></i>
-                </div>
-                
-                <div class="form-group">
-                    <label for="loginPassword" class="form-label">Password</label>
-                    <input 
-                        type="password" 
-                        id="loginPassword" 
-                        class="form-control" 
-                        placeholder="Enter your password"
-                        required
-                        autocomplete="current-password"
-                    >
-                    <i class="fas fa-lock form-icon"></i>
-                </div>
-                
-                <div id="loginError" class="error-message" style="display: none;"></div>
-                
-                <button type="submit" class="btn btn--primary btn--full-width" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Sign In</span>
-                </button>
-            </form>
-            
-            
         </div>
     </div>
 
     <!-- Main Application -->
     <div id="mainApp" class="app-container hidden">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
         <nav id="sidebar" class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <i class="fas fa-graduation-cap"></i>
-                    <span>TheMathematicsTuitorials</span>
+                    <span>EduPlatform</span>
                 </div>
-                <button id="sidebarToggle" class="sidebar-toggle">
-                    <i class="fas fa-bars"></i>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
-
+            
             <div class="sidebar-user">
-                <img id="userAvatar" src="https://via.placeholder.com/40" alt="User Avatar" class="user-avatar">
+                <img src="https://via.placeholder.com/40" alt="User Avatar" class="user-avatar" id="userAvatar">
                 <div class="user-details">
-                    <span id="userName" class="user-name">Loading...</span>
-                    <span id="userInfo" class="user-role">Loading...</span>
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-role" id="userInfo">Loading...</div>
                 </div>
             </div>
-
+            
             <ul class="sidebar-menu">
                 <li>
                     <a href="#" class="sidebar-item active" data-section="dashboard">
-                        <i class="fas fa-tachometer-alt"></i>
+                        <i class="fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
                 </li>
@@ -133,11 +152,11 @@
                     </a>
                 </li>
             </ul>
-
+            
             <div class="sidebar-footer">
-                <button id="logoutBtn" class="btn btn--secondary btn--full-width">
+                <button class="btn btn--secondary btn--full-width" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
+                    Logout
                 </button>
             </div>
         </nav>
@@ -147,7 +166,7 @@
             <!-- Header -->
             <header class="content-header">
                 <div class="header-left">
-                    <button id="mobileSidebarToggle" class="mobile-sidebar-toggle">
+                    <button class="mobile-sidebar-toggle" id="mobileSidebarToggle">
                         <i class="fas fa-bars"></i>
                     </button>
                     <h1 id="pageTitle">Dashboard</h1>
@@ -164,33 +183,31 @@
                         <i class="fas fa-search search-icon"></i>
                     </div>
                     
-                    <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+                    <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
                         <i class="fas fa-moon"></i>
                     </button>
                 </div>
             </header>
-
+            
             <!-- Content Area -->
-            <div id="contentArea" class="content-area">
+            <div class="content-area" id="contentArea">
                 <!-- Dynamic content will be loaded here -->
                 <div class="loading-state">
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                     </div>
-                    <p>Loading dashboard...</p>
+                    <p>Loading...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modals -->
-    
     <!-- Resource Modal -->
-    <div id="resourceModal" class="modal">
+    <div class="modal" id="resourceModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="resourceModalTitle">Add Resource</h2>
-                <button class="close-modal" title="Close modal">
+                <button class="close-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -199,60 +216,325 @@
                 <input type="hidden" id="resourceType" name="type">
                 
                 <div class="form-group">
-                    <label for="resourceTitle" class="form-label">Title</label>
-                    <input 
-                        type="text" 
-                        id="resourceTitle" 
-                        name="title" 
-                        class="form-control" 
-                        placeholder="Enter resource title"
-                        required
-                    >
+                    <label class="form-label">Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="Resource title" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="resourceDescription" class="form-label">Description</label>
-                    <textarea 
-                        id="resourceDescription" 
-                        name="description" 
-                        class="form-control" 
-                        placeholder="Enter resource description"
-                        rows="3"
-                    ></textarea>
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Resource description"></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label for="resourceFile" class="form-label">File</label>
-                    <input 
-                        type="file" 
-                        id="resourceFile" 
-                        name="file" 
-                        class="form-control file-input" 
-                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.zip,.rar"
-                        required
-                    >
-                    <div class="file-input-help">
-                        Supported formats: PDF, DOC, DOCX, TXT, Images, ZIP, RAR (Max: 50MB)
-                    </div>
+                    <label class="form-label">File</label>
+                    <input type="file" name="file" class="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar" required>
+                    <small class="file-input-help">Supported formats: PDF, DOC, DOCX, TXT, Images, ZIP, RAR (Max 50MB)</small>
                 </div>
                 
                 <div class="modal-footer">
                     <button type="button" class="btn btn--secondary close-modal">Cancel</button>
                     <button type="submit" class="btn btn--primary">
-                        <i class="fas fa-plus"></i>
-                        <span>Add Resource</span>
+                        <i class="fas fa-upload"></i> Upload Resource
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Theme Toggle Button -->
-    <button id="floatingThemeToggle" class="floating-theme-toggle" title="Toggle theme">
+    <!-- Student Edit Modal -->
+    <div class="modal" id="studentEditModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Student Profile</h2>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="studentEditForm" class="modal-form">
+                <input type="hidden" id="editStudentId" name="studentId">
+                
+                <div class="form-group">
+                    <label class="form-label">Profile Image</label>
+                    <div class="profile-image-upload">
+                        <img id="editStudentImage" src="https://via.placeholder.com/80" alt="Student" class="edit-profile-image">
+                        <input type="file" id="editStudentImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn--secondary" onclick="document.getElementById('editStudentImageInput').click()">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" id="editStudentName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" id="editStudentEmail" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" name="phone" id="editStudentPhone" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="dateOfBirth" id="editStudentDob" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" id="editStudentBio" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn btn--primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Theme Toggle -->
+    <button class="floating-theme-toggle" id="floatingThemeToggle" title="Toggle dark mode">
         <i class="fas fa-moon"></i>
     </button>
 
-    <!-- JavaScript -->
+    <!-- Scripts -->
     <script src="app.js"></script>
+
+    <!-- Additional styling for modals and profile image upload -->
+    <style>
+        .edit-profile-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--color-border);
+            margin-bottom: var(--spacing-md);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .profile-image-upload {
+            text-align: center;
+            padding: var(--spacing-lg);
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-surface);
+        }
+
+        .profile-image-upload:hover {
+            border-color: var(--primary-500);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            max-width: 400px;
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .notification--success {
+            border-left: 4px solid var(--success-500);
+        }
+
+        .notification--error {
+            border-left: 4px solid var(--danger-500);
+        }
+
+        .notification--warning {
+            border-left: 4px solid var(--warning-500);
+        }
+
+        .notification--info {
+            border-left: 4px solid var(--primary-500);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            flex: 1;
+            color: var(--color-text);
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            border-radius: var(--radius-sm);
+        }
+
+        .notification-close:hover {
+            background: var(--color-border);
+        }
+
+        /* Profile specific styles */
+        .profile-image-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .profile-image {
+            transition: all var(--transition-base);
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Loading states */
+        .btn.loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Enhanced scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-surface);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 4px;
+            transition: background var(--transition-fast);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-secondary);
+        }
+
+        /* Form enhancements */
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-control.error {
+            border-color: var(--danger-500);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-control.success {
+            border-color: var(--success-500);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+
+        /* Animation keyframes */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .notification {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+
+            .profile-image-upload {
+                padding: var(--spacing-md);
+            }
+
+            .edit-profile-image {
+                width: 60px;
+                height: 60px;
+            }
+        }
+
+        /* Dark theme specific adjustments */
+        [data-theme="dark"] .profile-image-upload:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        [data-theme="dark"] .edit-profile-image {
+            border-color: var(--color-border);
+        }
+
+        /* Print styles */
+        @media print {
+            .modal,
+            .notification,
+            .floating-theme-toggle {
+                display: none !important;
+            }
+        }
+    </style>
 </body>
 </html>

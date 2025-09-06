@@ -1,10 +1,11 @@
+// Updated app.js - Complete frontend JavaScript with profile functionality
+
 // API Service Class
 class ApiService {
     constructor() {
-        // FIXED: Updated with your actual backend URL
         this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5000/api'
-            : 'https://eduplatform-backend-k9fr.onrender.com/api'; // ✅ Your actual backend URL
+            : 'https://eduplatform-backend-k9fr.onrender.com/api';
         
         this.token = localStorage.getItem('authToken');
         console.log('🔧 API Service initialized with base URL:', this.baseURL);
@@ -41,7 +42,6 @@ class ApiService {
             console.log('📡 Making request to:', url);
             const response = await fetch(url, config);
             
-            // Check if response is ok
             if (!response.ok) {
                 let errorMessage = 'Request failed';
                 try {
@@ -88,6 +88,65 @@ class ApiService {
         });
     }
     
+    async uploadProfileImage(formData) {
+        const headers = {};
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        const response = await fetch(`${this.baseURL}/user/profile/image`, {
+            method: 'POST',
+            headers,
+            body: formData
+        });
+
+        if (!response.ok) {
+            let errorMessage = 'Failed to upload profile image';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        return await response.json();
+    }
+    
+    async uploadStudentProfileImage(studentId, formData) {
+        const headers = {};
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        const response = await fetch(`${this.baseURL}/students/${studentId}/profile/image`, {
+            method: 'POST',
+            headers,
+            body: formData
+        });
+
+        if (!response.ok) {
+            let errorMessage = 'Failed to upload student profile image';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        return await response.json();
+    }
+    
+    async updateStudentProfile(studentId, profileData) {
+        return this.makeRequest(`/students/${studentId}/profile`, {
+            method: 'PUT',
+            body: JSON.stringify(profileData)
+        });
+    }
+    
     // Dashboard methods
     async getDashboardStats() {
         return this.makeRequest('/dashboard/stats');
@@ -104,7 +163,6 @@ class ApiService {
     }
     
     async createResource(formData) {
-        // For file uploads, we don't set Content-Type header, let browser set it
         const headers = {};
         if (this.token) {
             headers['Authorization'] = `Bearer ${this.token}`;
@@ -136,8 +194,46 @@ class ApiService {
         });
     }
     
-    getDownloadUrl(id) {
-        return `${this.baseURL}/resources/${id}/download`;
+    async downloadResource(id) {
+        const token = this.token;
+        if (!token) {
+            throw new Error('Please login to download this resource');
+        }
+
+        const downloadUrl = `${this.baseURL}/resources/${id}/download`;
+
+        try {
+            const response = await fetch(downloadUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Download failed: ' + response.statusText);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            const disposition = response.headers.get('content-disposition');
+            let fileName = 'downloaded_file';
+            if (disposition && disposition.indexOf('filename=') !== -1) {
+                const filenameMatch = disposition.match(/filename="?(.+)"?/);
+                if (filenameMatch && filenameMatch.length > 1) fileName = filenameMatch[1];
+            }
+            a.download = fileName;
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            throw new Error('Error downloading file: ' + error.message);
+        }
     }
     
     // Schedule methods
@@ -189,12 +285,10 @@ class EducationApp {
     async init() {
         console.log('🚀 Initializing Education App...');
         
-        // Load saved theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
         
-        // Check if user is already logged in
         const token = localStorage.getItem('authToken');
         if (token) {
             try {
@@ -235,7 +329,14 @@ class EducationApp {
         const userName = document.getElementById('userName');
         
         if (userInfo) userInfo.textContent = this.currentUser.role.charAt(0).toUpperCase() + this.currentUser.role.slice(1);
-        if (userAvatar) userAvatar.src = this.currentUser.profileImage || 'https://via.placeholder.com/40';
+        if (userAvatar) {
+            const imageSrc = this.currentUser.profileImage 
+                ? (this.currentUser.profileImage.startsWith('http') 
+                    ? this.currentUser.profileImage 
+                    : `${this.api.baseURL.replace('/api', '')}/${this.currentUser.profileImage}`)
+                : 'https://via.placeholder.com/40';
+            userAvatar.src = imageSrc;
+        }
         if (userName) userName.textContent = this.currentUser.name;
     }
     
@@ -250,25 +351,21 @@ class EducationApp {
     }
     
     bindEvents() {
-        // Login form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
         
-        // Sidebar navigation
         const sidebarItems = document.querySelectorAll('.sidebar-item');
         sidebarItems.forEach(item => {
             item.addEventListener('click', (e) => this.handleNavigation(e));
         });
         
-        // Mobile sidebar toggle
         const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
         if (mobileSidebarToggle) {
             mobileSidebarToggle.addEventListener('click', () => this.toggleMobileSidebar());
         }
         
-        // Theme toggle
         const themeToggle = document.getElementById('themeToggle');
         const floatingThemeToggle = document.getElementById('floatingThemeToggle');
         if (themeToggle) {
@@ -278,29 +375,24 @@ class EducationApp {
             floatingThemeToggle.addEventListener('click', () => this.toggleTheme());
         }
         
-        // Logout
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => this.handleLogout());
         }
         
-        // Search functionality
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => this.handleSearch(e));
         }
         
-        // Resource modal and form events
         this.bindModalEvents();
         
-        // Close modal when clicking outside
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 this.closeModals();
             }
         });
         
-        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.closeModals();
@@ -309,13 +401,11 @@ class EducationApp {
     }
     
     bindModalEvents() {
-        // Resource form submission
         const resourceForm = document.getElementById('resourceForm');
         if (resourceForm) {
             resourceForm.addEventListener('submit', (e) => this.handleResourceSubmit(e));
         }
         
-        // Close buttons
         const closeButtons = document.querySelectorAll('.close-modal');
         closeButtons.forEach(btn => {
             btn.addEventListener('click', () => this.closeModals());
@@ -360,22 +450,17 @@ class EducationApp {
         
         this.currentSection = section;
         
-        // Update active sidebar item
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.classList.remove('active');
         });
         e.currentTarget.classList.add('active');
         
-        // Update page title
         const pageTitle = document.getElementById('pageTitle');
         if (pageTitle) {
             pageTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
         }
         
-        // Close mobile sidebar
         this.closeMobileSidebar();
-        
-        // Load section content
         this.loadSection(section);
     }
     
@@ -403,7 +488,7 @@ class EducationApp {
                 await this.loadStudents();
                 break;
             case 'profile':
-                this.loadProfile();
+                await this.loadProfile();
                 break;
             case 'settings':
                 this.loadSettings();
@@ -549,6 +634,258 @@ class EducationApp {
         }
     }
     
+    async loadProfile() {
+        const contentArea = document.getElementById('contentArea');
+        
+        try {
+            this.showContentLoading(contentArea);
+            const user = await this.api.getUserProfile();
+            this.currentUser = user; // Update current user data
+            
+            const imageSrc = user.profileImage 
+                ? (user.profileImage.startsWith('http') 
+                    ? user.profileImage 
+                    : `${this.api.baseURL.replace('/api', '')}/${user.profileImage}`)
+                : 'https://via.placeholder.com/150';
+
+            contentArea.innerHTML = `
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <h1><i class="fas fa-user"></i> My Profile</h1>
+                        <p>Manage your personal information and settings</p>
+                    </div>
+                    
+                    <div class="profile-content">
+                        <!-- Profile Image Section -->
+                        <div class="profile-image-section">
+                            <div class="profile-image-container">
+                                <img src="${imageSrc}" alt="${user.name}" class="profile-image" id="currentProfileImage">
+                                <div class="image-overlay" onclick="document.getElementById('profileImageInput').click()">
+                                    <i class="fas fa-camera"></i>
+                                    <span>Change Photo</span>
+                                </div>
+                                <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
+                            </div>
+                            <div class="image-actions">
+                                <button class="btn btn--primary" onclick="document.getElementById('profileImageInput').click()">
+                                    <i class="fas fa-upload"></i> Upload New Photo
+                                </button>
+                                ${user.profileImage && !user.profileImage.startsWith('http') ? `
+                                    <button class="btn btn--danger" onclick="app.removeProfileImage()">
+                                        <i class="fas fa-trash"></i> Remove Photo
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Profile Information -->
+                        <div class="profile-info-section">
+                            <form id="profileForm" class="profile-form">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-user"></i> Full Name
+                                        </label>
+                                        <input type="text" name="name" class="form-control" value="${user.name || ''}" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-envelope"></i> Email Address
+                                        </label>
+                                        <input type="email" class="form-control" value="${user.email}" disabled>
+                                        <small class="form-help">Email cannot be changed</small>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-phone"></i> Phone Number
+                                        </label>
+                                        <input type="tel" name="phone" class="form-control" value="${user.phone || ''}" placeholder="+91-9876543210">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-birthday-cake"></i> Date of Birth
+                                        </label>
+                                        <input type="date" name="dateOfBirth" class="form-control" value="${user.dateOfBirth || ''}">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-info-circle"></i> Bio
+                                    </label>
+                                    <textarea name="bio" class="form-control" rows="4" placeholder="Tell us about yourself...">${user.bio || ''}</textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-shield-alt"></i> Role
+                                    </label>
+                                    <input type="text" class="form-control" value="${user.role.charAt(0).toUpperCase() + user.role.slice(1)}" disabled>
+                                </div>
+                                
+                                <div class="profile-actions">
+                                    <button type="submit" class="btn btn--primary">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn--secondary" onclick="app.resetProfileForm()">
+                                        <i class="fas fa-undo"></i> Reset Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Account Information -->
+                        <div class="account-info-section">
+                            <h3><i class="fas fa-info-circle"></i> Account Information</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Member Since</label>
+                                    <span>${new Date(user.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Last Updated</label>
+                                    <span>${new Date(user.updatedAt).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Bind profile form events
+            this.bindProfileEvents();
+            
+        } catch (error) {
+            console.error('❌ Error loading profile:', error);
+            this.showError(contentArea, 'Error Loading Profile', error.message);
+        }
+    }
+    
+    bindProfileEvents() {
+        // Profile form submission
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) {
+            profileForm.addEventListener('submit', (e) => this.handleProfileSubmit(e));
+        }
+        
+        // Profile image upload
+        const profileImageInput = document.getElementById('profileImageInput');
+        if (profileImageInput) {
+            profileImageInput.addEventListener('change', (e) => this.handleProfileImageUpload(e));
+        }
+    }
+    
+    async handleProfileSubmit(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const profileData = Object.fromEntries(formData.entries());
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        
+        try {
+            this.showLoading(submitBtn, true);
+            const updatedUser = await this.api.updateUserProfile(profileData);
+            
+            this.currentUser = updatedUser;
+            this.updateUserProfile(); // Update sidebar user info
+            this.showNotification('Profile updated successfully!', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error updating profile:', error);
+            this.showNotification(error.message, 'error');
+        } finally {
+            this.showLoading(submitBtn, false);
+        }
+    }
+    
+    async handleProfileImageUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validate file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showNotification('File size must be less than 5MB', 'error');
+            return;
+        }
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            this.showNotification('Please select an image file', 'error');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('profileImage', file);
+        
+        try {
+            this.showNotification('Uploading profile image...', 'info');
+            const result = await this.api.uploadProfileImage(formData);
+            
+            // Update the profile image display
+            const currentProfileImage = document.getElementById('currentProfileImage');
+            if (currentProfileImage) {
+                const imageSrc = `${this.api.baseURL.replace('/api', '')}/${result.profileImage}`;
+                currentProfileImage.src = imageSrc;
+            }
+            
+            // Update current user data
+            this.currentUser = result.user;
+            this.updateUserProfile(); // Update sidebar avatar
+            
+            this.showNotification('Profile image updated successfully!', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error uploading profile image:', error);
+            this.showNotification(error.message, 'error');
+        }
+        
+        // Clear the input
+        e.target.value = '';
+    }
+    
+    resetProfileForm() {
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) {
+            // Reset form to current user data
+            profileForm.querySelector('input[name="name"]').value = this.currentUser.name || '';
+            profileForm.querySelector('input[name="phone"]').value = this.currentUser.phone || '';
+            profileForm.querySelector('input[name="dateOfBirth"]').value = this.currentUser.dateOfBirth || '';
+            profileForm.querySelector('textarea[name="bio"]').value = this.currentUser.bio || '';
+        }
+    }
+    
+    async removeProfileImage() {
+        if (!confirm('Are you sure you want to remove your profile image?')) {
+            return;
+        }
+        
+        try {
+            // Create empty FormData to remove image
+            const formData = new FormData();
+            formData.append('profileImage', '');
+            
+            const result = await this.api.uploadProfileImage(formData);
+            
+            // Update the profile image display
+            const currentProfileImage = document.getElementById('currentProfileImage');
+            if (currentProfileImage) {
+                currentProfileImage.src = 'https://via.placeholder.com/150';
+            }
+            
+            this.currentUser = result.user;
+            this.updateUserProfile();
+            
+            this.showNotification('Profile image removed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('❌ Error removing profile image:', error);
+            this.showNotification(error.message, 'error');
+        }
+    }
+    
     async loadResources(type) {
         const contentArea = document.getElementById('contentArea');
         
@@ -618,15 +955,22 @@ class EducationApp {
                     <span><i class="fas fa-user"></i> ${resource.uploadedBy?.name || 'Unknown'}</span>
                 </div>
                 <div class="resource-footer">
-                    <a href="${this.api.getDownloadUrl(resource._id)}" 
-                       class="btn btn--primary" 
-                       download="${resource.fileName}"
-                       target="_blank">
+                    <button class="btn btn--primary" onclick="app.downloadResource('${resource._id}')">
                         <i class="fas fa-download"></i> Download
-                    </a>
+                    </button>
                 </div>
             </div>
         `;
+    }
+    
+    async downloadResource(resourceId) {
+        try {
+            await this.api.downloadResource(resourceId);
+            this.showNotification('Download started successfully!', 'success');
+        } catch (error) {
+            console.error('❌ Error downloading resource:', error);
+            this.showNotification(error.message, 'error');
+        }
     }
     
     async loadSchedules() {
@@ -680,7 +1024,6 @@ class EducationApp {
                     </div>
                 `;
                 
-                // Bind schedule form submission
                 setTimeout(() => {
                     const scheduleForm = document.getElementById('scheduleForm');
                     if (scheduleForm) {
@@ -781,6 +1124,18 @@ class EducationApp {
                                 <label class="form-label">Password</label>
                                 <input type="password" name="password" class="form-control" placeholder="Temporary password" required>
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" name="phone" class="form-control" placeholder="+91-9876543210">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bio</label>
+                            <textarea name="bio" class="form-control" rows="2" placeholder="Brief description about the student"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" name="dateOfBirth" class="form-control">
                         </div>
                         <button type="submit" class="btn btn--primary">
                             <i class="fas fa-plus"></i> Add Student
@@ -791,7 +1146,6 @@ class EducationApp {
                 <div class="students-grid">
             `;
             
-            // Bind student form submission
             setTimeout(() => {
                 const studentForm = document.getElementById('studentForm');
                 if (studentForm) {
@@ -824,36 +1178,34 @@ class EducationApp {
     
     createStudentCard(student) {
         const formattedDate = new Date(student.createdAt).toLocaleDateString();
+        const imageSrc = student.profileImage 
+            ? (student.profileImage.startsWith('http') 
+                ? student.profileImage 
+                : `${this.api.baseURL.replace('/api', '')}/${student.profileImage}`)
+            : 'https://via.placeholder.com/50';
         
         return `
             <div class="student-card">
                 <div class="student-header">
-                    <img src="${student.profileImage || 'https://via.placeholder.com/50'}" alt="${student.name}" loading="lazy">
+                    <img src="${imageSrc}" alt="${student.name}" loading="lazy">
                     <div class="student-info">
                         <h3>${student.name}</h3>
                         <p>${student.email}</p>
+                        ${student.bio ? `<small>${student.bio}</small>` : ''}
                     </div>
-                    <button class="btn-icon btn--danger" onclick="app.deleteStudent('${student._id}')" title="Delete student">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <div class="student-actions">
+                        <button class="btn-icon btn--secondary" onclick="app.editStudent('${student._id}')" title="Edit student">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn--danger" onclick="app.deleteStudent('${student._id}')" title="Delete student">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="student-meta">
                     <span><i class="fas fa-calendar-plus"></i> Joined: ${formattedDate}</span>
+                    ${student.phone ? `<span><i class="fas fa-phone"></i> ${student.phone}</span>` : ''}
                 </div>
-            </div>
-        `;
-    }
-    
-    loadProfile() {
-        const contentArea = document.getElementById('contentArea');
-        contentArea.innerHTML = `
-            <div class="section-header">
-                <h1>Profile</h1>
-            </div>
-            <div class="empty-state">
-                <i class="fas fa-user"></i>
-                <h3>Profile Management</h3>
-                <p>Profile management features coming soon!</p>
             </div>
         `;
     }
@@ -899,13 +1251,11 @@ class EducationApp {
             this.closeModals();
             this.showNotification('Resource added successfully!', 'success');
             
-            // Reset form
             e.target.reset();
             
-            // Reload current section if it's a resource section
             const resourceSections = ['notes', 'questions', 'books'];
             if (resourceSections.some(section => this.currentSection.includes(section))) {
-                const type = this.currentSection.slice(0, -1); // Remove 's' from end
+                const type = this.currentSection.slice(0, -1);
                 await this.loadResources(type);
             }
             
@@ -1008,6 +1358,11 @@ class EducationApp {
         }
     }
     
+    editStudent(id) {
+        // TODO: Implement edit student modal
+        this.showNotification('Edit student feature coming soon!', 'info');
+    }
+    
     closeModals() {
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => {
@@ -1062,7 +1417,6 @@ class EducationApp {
         const searchTerm = e.target.value.toLowerCase();
         console.log('🔍 Searching for:', searchTerm);
         
-        // Implement search functionality based on current section
         if (['notes', 'questions', 'books'].includes(this.currentSection)) {
             this.searchResources(searchTerm);
         }
@@ -1070,8 +1424,7 @@ class EducationApp {
     
     async searchResources(searchTerm) {
         if (!searchTerm.trim()) {
-            // If search is empty, reload all resources
-            const type = this.currentSection.slice(0, -1); // Remove 's' from end
+            const type = this.currentSection.slice(0, -1);
             await this.loadResources(type);
             return;
         }
@@ -1164,7 +1517,6 @@ class EducationApp {
     }
     
     showNotification(message, type = 'info') {
-        // Remove existing notifications
         const existingNotifications = document.querySelectorAll('.notification');
         existingNotifications.forEach(notification => notification.remove());
         
@@ -1190,7 +1542,6 @@ class EducationApp {
             </button>
         `;
         
-        // Add notification styles
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -1209,7 +1560,6 @@ class EducationApp {
             border-left: 4px solid var(--${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'primary'}-500);
         `;
         
-        // Add notification styles for content
         const content = notification.querySelector('.notification-content');
         content.style.cssText = `
             display: flex;
@@ -1219,7 +1569,6 @@ class EducationApp {
             color: var(--color-text);
         `;
         
-        // Add close button styles
         const closeBtn = notification.querySelector('.notification-close');
         closeBtn.style.cssText = `
             background: none;
@@ -1232,7 +1581,6 @@ class EducationApp {
         
         document.body.appendChild(notification);
         
-        // Auto remove after 5 seconds
         setTimeout(() => {
             if (notification.parentElement) {
                 notification.style.animation = 'slideOutRight 0.3s ease-out forwards';
@@ -1250,7 +1598,6 @@ class EducationApp {
     }
 }
 
-// Add notification animation styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -1277,13 +1624,11 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎓 Educational Platform starting...');
     window.app = new EducationApp();
 });
 
-// Handle page visibility change to prevent unnecessary API calls
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
         console.log('📱 App hidden');
