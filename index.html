@@ -1,69 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Educational Platform - TMT Shashi</title>
+    <title>TMT Classes - Educational Platform</title>
     
-    <!-- FontAwesome Icons -->
+    <!-- Favicon -->
+    <link rel="icon" href="./logo.jpg" type="image/jpeg">
+    <link rel="shortcut icon" href="./logo.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="./logo.jpg">
+    
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Main Styles -->
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Login Screen -->
-    <div id="loginScreen" class="login-screen">
-        <div class="login-container">
-            <div class="login-card">
-                <div class="login-header">
-                    <div class="logo-container">
-                        <i class="fas fa-graduation-cap logo-icon"></i>
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo-container">
+                    <img src="./logo.jpg" alt="TMT Classes" style="width: 60px; height: 60px; border-radius: 50%;">
+                    <div>
+                        <h1>TMT Classes</h1>
+                        <p>Mathematics Tutorial Platform</p>
                     </div>
-                    <h1>Educational Platform</h1>
-                    <p>Welcome to TMT Shashi Learning Platform</p>
+                </div>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="loginEmail" class="form-control" required>
                 </div>
                 
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label class="form-label" for="loginEmail">
-                            <i class="fas fa-envelope"></i> Email Address
-                        </label>
-                        <input 
-                            type="email" 
-                            id="loginEmail" 
-                            name="email" 
-                            class="form-control" 
-                            placeholder="Enter your email"
-                            required
-                        >
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="loginPassword">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input 
-                            type="password" 
-                            id="loginPassword" 
-                            name="password" 
-                            class="form-control" 
-                            placeholder="Enter your password"
-                            required
-                        >
-                    </div>
-                    
-                    <div class="error-message hidden" id="loginError"></div>
-                    
-                    <button type="submit" id="loginBtn" class="btn btn--primary btn--full-width">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                </form>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" required>
+                </div>
                 
+                <div id="loginError" class="error-message" style="display: none;"></div>
                 
+                <button type="submit" id="loginBtn" class="btn btn--primary btn--full-width">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+            
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <h4><i class="fas fa-info-circle"></i> Demo Credentials</h4>
+                <div class="credential-row">
+                    <strong>Teacher:</strong> <code>teachshashi@tmt.com</code> / <code>shashi12@tmt</code>
+                </div>
+                <div class="credential-row">
+                    <strong>Student 1:</strong> <code>student1@math.com</code> / <code>studentpass1</code>
+                </div>
+                <div class="credential-row">
+                    <strong>Student 2:</strong> <code>student2@math.com</code> / <code>studentpass2</code>
+                </div>
             </div>
         </div>
     </div>
@@ -74,19 +70,16 @@
         <nav id="sidebar" class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>TMT</span>
+                    <img src="./logo.jpg" alt="TMT" style="width: 32px; height: 32px; border-radius: 50%;">
+                    <span>TMT Classes</span>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
             
             <div class="sidebar-user">
-                <img src="https://via.placeholder.com/40" alt="User Avatar" class="user-avatar" id="userAvatar">
+                <img id="userAvatar" src="https://via.placeholder.com/40" alt="User" class="user-avatar">
                 <div class="user-details">
-                    <div class="user-name" id="userName">Loading...</div>
-                    <div class="user-role" id="userInfo">Loading...</div>
+                    <div id="userName" class="user-name">Loading...</div>
+                    <div id="userInfo" class="user-role">Loading...</div>
                 </div>
             </div>
             
@@ -99,7 +92,7 @@
                 </li>
                 <li>
                     <a href="#" class="sidebar-item" data-section="notes">
-                        <i class="fas fa-book"></i>
+                        <i class="fas fa-sticky-note"></i>
                         <span>Notes</span>
                     </a>
                 </li>
@@ -111,7 +104,7 @@
                 </li>
                 <li>
                     <a href="#" class="sidebar-item" data-section="books">
-                        <i class="fas fa-book-open"></i>
+                        <i class="fas fa-book"></i>
                         <span>Books</span>
                     </a>
                 </li>
@@ -125,6 +118,12 @@
                     <a href="#" class="sidebar-item" data-section="students">
                         <i class="fas fa-users"></i>
                         <span>Students</span>
+                    </a>
+                </li>
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="fees">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Fee Management</span>
                     </a>
                 </li>
                 <li>
@@ -142,7 +141,7 @@
             </ul>
             
             <div class="sidebar-footer">
-                <button class="btn btn--secondary btn--full-width" id="logoutBtn">
+                <button id="logoutBtn" class="btn btn--secondary btn--full-width">
                     <i class="fas fa-sign-out-alt"></i>
                     Logout
                 </button>
@@ -154,7 +153,7 @@
             <!-- Header -->
             <header class="content-header">
                 <div class="header-left">
-                    <button class="mobile-sidebar-toggle" id="mobileSidebarToggle">
+                    <button id="mobileSidebarToggle" class="mobile-sidebar-toggle">
                         <i class="fas fa-bars"></i>
                     </button>
                     <h1 id="pageTitle">Dashboard</h1>
@@ -162,36 +161,30 @@
                 
                 <div class="header-right">
                     <div class="search-container">
-                        <input 
-                            type="text" 
-                            id="searchInput" 
-                            class="search-input" 
-                            placeholder="Search resources..."
-                        >
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search...">
                         <i class="fas fa-search search-icon"></i>
                     </div>
-                    
-                    <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+                    <button id="themeToggle" class="theme-toggle">
                         <i class="fas fa-moon"></i>
                     </button>
                 </div>
             </header>
             
             <!-- Content Area -->
-            <div class="content-area" id="contentArea">
-                <!-- Dynamic content will be loaded here -->
+            <div id="contentArea" class="content-area">
+                <!-- Content will be loaded here dynamically -->
                 <div class="loading-state">
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
                     </div>
-                    <p>Loading...</p>
+                    <p>Loading content...</p>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Resource Modal -->
-    <div class="modal" id="resourceModal">
+    <!-- Resource Upload Modal -->
+    <div id="resourceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="resourceModalTitle">Add Resource</h2>
@@ -205,24 +198,24 @@
                 
                 <div class="form-group">
                     <label class="form-label">Title</label>
-                    <input type="text" name="title" class="form-control" placeholder="Resource title" required>
+                    <input type="text" name="title" class="form-control" required>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="3" placeholder="Resource description"></textarea>
+                    <textarea name="description" class="form-control" rows="3"></textarea>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">File</label>
-                    <input type="file" name="file" class="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar" required>
-                    <small class="file-input-help">Supported formats: PDF, DOC, DOCX, TXT, Images, ZIP, RAR (Max 50MB)</small>
+                    <input type="file" name="file" class="form-control file-input" required>
+                    <small class="file-input-help">Max file size: 50MB. Supported formats: PDF, DOC, DOCX, TXT, ZIP, RAR, Images</small>
                 </div>
                 
                 <div class="modal-footer">
                     <button type="button" class="btn btn--secondary close-modal">Cancel</button>
                     <button type="submit" class="btn btn--primary">
-                        <i class="fas fa-upload"></i> Upload Resource
+                        <i class="fas fa-upload"></i> Upload
                     </button>
                 </div>
             </form>
@@ -230,7 +223,7 @@
     </div>
 
     <!-- Student Edit Modal -->
-    <div class="modal" id="studentEditModal">
+    <div id="studentEditModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit Student Profile</h2>
@@ -242,42 +235,39 @@
             <form id="studentEditForm" class="modal-form">
                 <input type="hidden" id="editStudentId" name="studentId">
                 
-                <div class="form-group">
-                    <label class="form-label">Profile Image</label>
-                    <div class="profile-image-upload">
-                        <img id="editStudentImage" src="https://via.placeholder.com/80" alt="Student" class="edit-profile-image">
+                <div class="form-group text-center">
+                    <div class="profile-image-container">
+                        <img id="editStudentImage" src="https://via.placeholder.com/80" alt="Student Photo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-border);">
+                        <div class="image-overlay" onclick="document.getElementById('editStudentImageInput').click()">
+                            <i class="fas fa-camera"></i>
+                        </div>
                         <input type="file" id="editStudentImageInput" accept="image/*" style="display: none;">
-                        <button type="button" class="btn btn--secondary" onclick="document.getElementById('editStudentImageInput').click()">
-                            <i class="fas fa-camera"></i> Change Photo
-                        </button>
                     </div>
                 </div>
                 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" name="name" id="editStudentName" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" name="email" id="editStudentEmail" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input type="tel" name="phone" id="editStudentPhone" class="form-control">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth</label>
-                        <input type="date" name="dateOfBirth" id="editStudentDob" class="form-control">
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="editStudentName" name="name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="editStudentEmail" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="editStudentPhone" name="phone" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" id="editStudentDob" name="dateOfBirth" class="form-control">
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">Bio</label>
-                    <textarea name="bio" id="editStudentBio" class="form-control" rows="3"></textarea>
+                    <textarea id="editStudentBio" name="bio" class="form-control" rows="3"></textarea>
                 </div>
                 
                 <div class="modal-footer">
@@ -290,239 +280,310 @@
         </div>
     </div>
 
+    <!-- Fee Payment Modal -->
+    <div id="feePaymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Update Fee Status</h2>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="feePaymentForm" class="modal-form">
+                <input type="hidden" id="paymentStudentId" name="studentId">
+                
+                <div class="form-group">
+                    <label class="form-label">Student Name</label>
+                    <input type="text" id="paymentStudentName" class="form-control" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Month</label>
+                    <select name="month" id="paymentMonth" class="form-control" required>
+                        <option value="">Select Month</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <select name="year" id="paymentYear" class="form-control" required>
+                        <!-- Years will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Amount (₹)</label>
+                    <input type="number" name="amount" class="form-control" min="0" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control" required>
+                        <option value="paid">Paid</option>
+                        <option value="pending">Pending</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Payment Date</label>
+                    <input type="date" name="paymentDate" class="form-control">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Payment method, reference number, etc."></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn btn--primary">
+                        <i class="fas fa-save"></i> Update Fee Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Floating Theme Toggle -->
-    <button class="floating-theme-toggle" id="floatingThemeToggle" title="Toggle dark mode">
+    <button id="floatingThemeToggle" class="floating-theme-toggle">
         <i class="fas fa-moon"></i>
     </button>
 
-    <!-- Scripts -->
+    <!-- JavaScript -->
     <script src="app.js"></script>
-
-    <!-- Additional styling for modals and profile image upload -->
-    <style>
-        .edit-profile-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--color-border);
-            margin-bottom: var(--spacing-md);
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+    
+    <!-- Theme and notification fixes -->
+    <script>
+    // Immediate Theme Toggle Fix
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 Applying theme and notification fixes...');
+        
+        // Fix theme toggle functionality
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            console.log('🎨 Switching from', currentTheme, 'to', newTheme);
+            
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icons
+            updateThemeIcons(newTheme);
+            
+            // Show notification
+            showQuickNotification(`Switched to ${newTheme} mode`, 'info');
         }
-
-        .profile-image-upload {
-            text-align: center;
-            padding: var(--spacing-lg);
-            border: 2px dashed var(--color-border);
-            border-radius: var(--radius-md);
-            background: var(--color-surface);
+        
+        function updateThemeIcons(theme) {
+            const themeToggles = document.querySelectorAll('#themeToggle i, #floatingThemeToggle i');
+            themeToggles.forEach(icon => {
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            });
         }
-
-        .profile-image-upload:hover {
-            border-color: var(--primary-500);
-            background: rgba(59, 130, 246, 0.05);
+        
+        function showQuickNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.quick-notification');
+            existingNotifications.forEach(notification => notification.remove());
+            
+            const notification = document.createElement('div');
+            notification.className = `quick-notification quick-notification--${type}`;
+            
+            const iconMap = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            const icon = iconMap[type] || iconMap.info;
+            
+            notification.innerHTML = `
+                <div class="quick-notification-content">
+                    <i class="fas fa-${icon}"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="quick-notification-close" onclick="this.parentElement.remove();">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            // Apply immediate styles
+            Object.assign(notification.style, {
+                position: 'fixed',
+                top: '80px',
+                right: '20px',
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '12px',
+                padding: '16px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                zIndex: '3000',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                maxWidth: '400px',
+                minWidth: '300px',
+                animation: 'slideInRight 0.4s ease-out',
+                borderLeft: `4px solid ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'}`
+            });
+            
+            const content = notification.querySelector('.quick-notification-content');
+            Object.assign(content.style, {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flex: '1',
+                color: 'var(--color-text)',
+                fontSize: '14px',
+                fontWeight: '500'
+            });
+            
+            const closeBtn = notification.querySelector('.quick-notification-close');
+            Object.assign(closeBtn.style, {
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-text-secondary)',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '24px',
+                height: '24px',
+                transition: 'all 0.2s'
+            });
+            
+            closeBtn.addEventListener('mouseenter', () => {
+                closeBtn.style.background = 'var(--color-border)';
+            });
+            
+            closeBtn.addEventListener('mouseleave', () => {
+                closeBtn.style.background = 'none';
+            });
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 4000);
         }
-
-        /* Notification Styles */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
-            box-shadow: var(--shadow-lg);
-            z-index: 3000;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-md);
-            max-width: 400px;
-            animation: slideInRight 0.3s ease-out;
+        
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcons(savedTheme);
+        
+        // Bind theme toggle events
+        const themeToggle = document.getElementById('themeToggle');
+        const floatingThemeToggle = document.getElementById('floatingThemeToggle');
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+            console.log('✅ Header theme toggle bound');
         }
-
-        .notification--success {
-            border-left: 4px solid var(--success-500);
+        
+        if (floatingThemeToggle) {
+            floatingThemeToggle.addEventListener('click', toggleTheme);
+            console.log('✅ Floating theme toggle bound');
         }
-
-        .notification--error {
-            border-left: 4px solid var(--danger-500);
-        }
-
-        .notification--warning {
-            border-left: 4px solid var(--warning-500);
-        }
-
-        .notification--info {
-            border-left: 4px solid var(--primary-500);
-        }
-
-        .notification-content {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-            flex: 1;
-            color: var(--color-text);
-        }
-
-        .notification-close {
-            background: none;
-            border: none;
-            color: var(--color-text-secondary);
-            cursor: pointer;
-            padding: var(--spacing-xs);
-            border-radius: var(--radius-sm);
-        }
-
-        .notification-close:hover {
-            background: var(--color-border);
-        }
-
-        /* Profile specific styles */
-        .profile-image-container {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-        }
-
-        .profile-image {
-            transition: all var(--transition-base);
-        }
-
-        .profile-image:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-lg);
-        }
-
-        /* Loading states */
-        .btn.loading {
-            position: relative;
-            pointer-events: none;
-        }
-
-        .btn.loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 16px;
-            height: 16px;
-            margin: -8px 0 0 -8px;
-            border: 2px solid transparent;
-            border-top: 2px solid currentColor;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        /* Enhanced scrollbar styles */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--color-surface);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--color-border);
-            border-radius: 4px;
-            transition: background var(--transition-fast);
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--color-text-secondary);
-        }
-
-        /* Form enhancements */
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-500);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .form-control.error {
-            border-color: var(--danger-500);
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-        }
-
-        .form-control.success {
-            border-color: var(--success-500);
-            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
-        }
-
-        /* Animation keyframes */
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
+        
+        // Add CSS animations if not present
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
+            
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
             }
-        }
-
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
+            
+            .theme-toggle:hover,
+            .floating-theme-toggle:hover {
+                transform: scale(1.05);
+                transition: all 0.2s ease;
             }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
+            
+            .theme-toggle:active,
+            .floating-theme-toggle:active {
+                transform: scale(0.95);
             }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
+            
+            /* Enhanced notification styles for dark mode */
+            [data-theme="dark"] .quick-notification {
+                background: var(--color-surface) !important;
+                border-color: var(--color-border) !important;
+                color: var(--color-text) !important;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            
+            [data-theme="dark"] .quick-notification-content {
+                color: var(--color-text) !important;
             }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .notification {
-                left: 10px;
-                right: 10px;
-                max-width: none;
+            
+            [data-theme="dark"] .quick-notification-close {
+                color: var(--color-text-secondary) !important;
             }
-
-            .profile-image-upload {
-                padding: var(--spacing-md);
+            
+            [data-theme="dark"] .quick-notification-close:hover {
+                background: var(--color-border) !important;
+                color: var(--color-text) !important;
             }
-
-            .edit-profile-image {
-                width: 60px;
-                height: 60px;
+            
+            /* Mobile responsive */
+            @media (max-width: 768px) {
+                .quick-notification {
+                    top: 70px !important;
+                    left: 10px !important;
+                    right: 10px !important;
+                    max-width: none !important;
+                    min-width: auto !important;
+                }
             }
-        }
-
-        /* Dark theme specific adjustments */
-        [data-theme="dark"] .profile-image-upload:hover {
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        [data-theme="dark"] .edit-profile-image {
-            border-color: var(--color-border);
-        }
-
-        /* Print styles */
-        @media print {
-            .modal,
-            .notification,
-            .floating-theme-toggle {
-                display: none !important;
+        `;
+        document.head.appendChild(style);
+        
+        console.log('✅ Theme and notification fixes applied successfully!');
+        
+        // Populate years in fee payment modal
+        const currentYear = new Date().getFullYear();
+        const paymentYearSelect = document.getElementById('paymentYear');
+        if (paymentYearSelect) {
+            for (let year = currentYear - 2; year <= currentYear + 1; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) {
+                    option.selected = true;
+                }
+                paymentYearSelect.appendChild(option);
             }
         }
-    </style>
+    });
+    </script>
 </body>
 </html>
