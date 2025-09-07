@@ -1,13 +1,11 @@
-// Complete app.js with Fee Management System
+// Complete app.js with Fee Management System, Results/Leaderboard, and Announcements/Notice Board
 
 // API Service Class
 class ApiService {
     constructor() {
-        this.baseURL = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1'
+        this.baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5000/api'
             : 'https://eduplatform-backend-k9fr.onrender.com/api';
-        
         this.token = localStorage.getItem('authToken');
         console.log('🔧 API Service initialized with base URL:', this.baseURL);
     }
@@ -23,9 +21,7 @@ class ApiService {
     }
 
     getAuthHeaders() {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
+        const headers = { 'Content-Type': 'application/json' };
         if (this.token) {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
@@ -35,14 +31,10 @@ class ApiService {
     async makeRequest(endpoint, options = {}) {
         try {
             const url = `${this.baseURL}${endpoint}`;
-            const config = {
-                headers: this.getAuthHeaders(),
-                ...options
-            };
-
+            const config = { headers: this.getAuthHeaders(), ...options };
             console.log('📡 Making request to:', url);
-            const response = await fetch(url, config);
 
+            const response = await fetch(url, config);
             if (!response.ok) {
                 let errorMessage = 'Request failed';
                 try {
@@ -189,9 +181,7 @@ class ApiService {
     }
 
     async deleteResource(id) {
-        return this.makeRequest(`/resources/${id}`, {
-            method: 'DELETE'
-        });
+        return this.makeRequest(`/resources/${id}`, { method: 'DELETE' });
     }
 
     // Fixed download resource method
@@ -204,15 +194,12 @@ class ApiService {
         try {
             // First get resource details to get the filename
             const resource = await this.makeRequest(`/resources/${id}`);
-            
             const downloadUrl = `${this.baseURL}/resources/${id}/download`;
             console.log('🔗 Download URL:', downloadUrl);
-            
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!response.ok) {
@@ -233,21 +220,18 @@ class ApiService {
 
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
             a.download = fileName;
-            
             document.body.appendChild(a);
             a.click();
-            
+
             // Cleanup
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
             console.log('✅ File downloaded successfully:', fileName);
-            
+
         } catch (error) {
             console.error('❌ Download error:', error);
             throw new Error(`Failed to download file: ${error.message}`);
@@ -272,9 +256,7 @@ class ApiService {
     }
 
     async deleteSchedule(id) {
-        return this.makeRequest(`/schedules/${id}`, {
-            method: 'DELETE'
-        });
+        return this.makeRequest(`/schedules/${id}`, { method: 'DELETE' });
     }
 
     // Student management methods
@@ -290,9 +272,7 @@ class ApiService {
     }
 
     async deleteStudent(id) {
-        return this.makeRequest(`/students/${id}`, {
-            method: 'DELETE'
-        });
+        return this.makeRequest(`/students/${id}`, { method: 'DELETE' });
     }
 
     // Fee management methods
@@ -314,6 +294,66 @@ class ApiService {
     async getFeeStats() {
         return this.makeRequest('/fees/stats');
     }
+
+    // Results management methods
+    async getResults() {
+        return this.makeRequest('/results');
+    }
+
+    async createResult(resultData) {
+        return this.makeRequest('/results', {
+            method: 'POST',
+            body: JSON.stringify(resultData)
+        });
+    }
+
+    async updateResult(id, resultData) {
+        return this.makeRequest(`/results/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(resultData)
+        });
+    }
+
+    async deleteResult(id) {
+        return this.makeRequest(`/results/${id}`, { method: 'DELETE' });
+    }
+
+    async getLeaderboard() {
+        return this.makeRequest('/results/leaderboard');
+    }
+
+    // NEW: Announcements methods
+    async getAnnouncements() {
+        return this.makeRequest('/announcements');
+    }
+
+    async createAnnouncement(announcementData) {
+        return this.makeRequest('/announcements', {
+            method: 'POST',
+            body: JSON.stringify(announcementData)
+        });
+    }
+
+    async updateAnnouncement(id, announcementData) {
+        return this.makeRequest(`/announcements/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(announcementData)
+        });
+    }
+
+    async deleteAnnouncement(id) {
+        return this.makeRequest(`/announcements/${id}`, { method: 'DELETE' });
+    }
+
+    async markAnnouncementAsRead(id) {
+        return this.makeRequest(`/announcements/${id}/read`, {
+            method: 'POST'
+        });
+    }
+
+    async getUnreadAnnouncementsCount() {
+        return this.makeRequest('/announcements/unread/count');
+    }
 }
 
 // Main Education App Class
@@ -323,6 +363,7 @@ class EducationApp {
         this.currentUser = null;
         this.currentSection = 'dashboard';
         this.selectedStudentId = null;
+        this.announcementPollInterval = null;
         this.init();
     }
 
@@ -331,13 +372,14 @@ class EducationApp {
         
         // Initialize theme first
         this.initializeTheme();
-        
+
         const token = localStorage.getItem('authToken');
         if (token) {
             try {
                 this.currentUser = await this.api.getUserProfile();
                 console.log('✅ Auto-login successful:', this.currentUser.name);
                 this.showMainApp();
+                this.startAnnouncementPolling(); // Start polling for new announcements
             } catch (error) {
                 console.error('❌ Auto-login failed:', error);
                 this.api.clearAuthToken();
@@ -354,7 +396,7 @@ class EducationApp {
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         this.updateThemeIcon(savedTheme);
-        
+
         // Bind theme toggle events
         const themeToggle = document.getElementById('themeToggle');
         const floatingThemeToggle = document.getElementById('floatingThemeToggle');
@@ -373,21 +415,20 @@ class EducationApp {
     toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+
         // Add animation class to theme toggles
         const themeToggles = document.querySelectorAll('#themeToggle, #floatingThemeToggle');
         themeToggles.forEach(toggle => {
             toggle.classList.add('animating');
             setTimeout(() => toggle.classList.remove('animating'), 500);
         });
-        
+
         // Apply new theme
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         this.updateThemeIcon(newTheme);
-        
         console.log('🎨 Theme changed to:', newTheme);
-        
+
         // Show notification about theme change
         this.showNotification(`Switched to ${newTheme} mode`, 'info');
     }
@@ -406,17 +447,17 @@ class EducationApp {
             notification.classList.add('removing');
             setTimeout(() => notification.remove(), 300);
         });
-        
+
         const notification = document.createElement('div');
         notification.className = `notification notification--${type}`;
-        
+
         const iconMap = {
             success: 'check-circle',
             error: 'exclamation-circle',
             warning: 'exclamation-triangle',
             info: 'info-circle'
         };
-        
+
         const icon = iconMap[type] || iconMap.info;
         
         notification.innerHTML = `
@@ -424,356 +465,394 @@ class EducationApp {
                 <i class="fas fa-${icon}"></i>
                 <span>${message}</span>
             </div>
-            <button class="notification-close" onclick="this.parentElement.classList.add('removing'); setTimeout(() => this.parentElement.remove(), 300);">
+            <button onclick="this.parentElement.remove()">
                 <i class="fas fa-times"></i>
             </button>
         `;
-        
-        // Apply immediate styles
-        Object.assign(notification.style, {
-            position: 'fixed',
-            top: '80px',
-            right: '20px',
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '12px',
-            padding: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            zIndex: '3000',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            maxWidth: '400px',
-            minWidth: '300px',
-            animation: 'slideInRight 0.4s ease-out',
-            borderLeft: `4px solid ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'}`
-        });
-        
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-${type === 'info' ? 'primary' : type});
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 500px;
+            animation: slideInRight 0.3s ease;
+        `;
+
         document.body.appendChild(notification);
-        
-        // Auto remove after 5 seconds
+
+        // Auto remove after 4 seconds
         setTimeout(() => {
             if (notification.parentElement) {
-                notification.classList.add('removing');
+                notification.style.animation = 'slideOutRight 0.3s ease forwards';
                 setTimeout(() => notification.remove(), 300);
             }
-        }, 5000);
-    }
-
-    showLogin() {
-        console.log('📝 Showing login screen');
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('mainApp').classList.add('hidden');
-    }
-
-    async showMainApp() {
-        console.log('🏠 Showing main application');
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-
-        this.updateUserProfile();
-        this.setupSidebar();
-        await this.loadDashboard();
-    }
-
-    updateUserProfile() {
-        const userInfo = document.getElementById('userInfo');
-        const userAvatar = document.getElementById('userAvatar');
-        const userName = document.getElementById('userName');
-
-        if (userInfo) {
-            userInfo.textContent = this.currentUser.role.charAt(0).toUpperCase() + this.currentUser.role.slice(1);
-        }
-
-        if (userAvatar) {
-            const imageSrc = this.currentUser.profileImage
-                ? (this.currentUser.profileImage.startsWith('http')
-                    ? this.currentUser.profileImage
-                    : `${this.api.baseURL.replace('/api', '')}/${this.currentUser.profileImage}`)
-                : 'https://via.placeholder.com/40';
-            userAvatar.src = imageSrc;
-        }
-
-        if (userName) {
-            userName.textContent = this.currentUser.name;
-        }
-    }
-
-    setupSidebar() {
-        const teacherOnlyItems = document.querySelectorAll('.teacher-only');
-        if (this.currentUser.role !== 'teacher') {
-            teacherOnlyItems.forEach(item => {
-                item.style.display = 'none';
-            });
-        }
+        }, 4000);
     }
 
     bindEvents() {
+        // Login form
         const loginForm = document.getElementById('loginForm');
         if (loginForm) {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
 
-        const sidebarItems = document.querySelectorAll('.sidebar-item');
-        sidebarItems.forEach(item => {
-            item.addEventListener('click', (e) => this.handleNavigation(e));
+        // Logout button
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#logoutBtn')) {
+                this.handleLogout();
+            }
         });
 
-        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
-        if (mobileSidebarToggle) {
-            mobileSidebarToggle.addEventListener('click', () => this.toggleMobileSidebar());
-        }
+        // Sidebar navigation
+        document.addEventListener('click', (e) => {
+            const sidebarItem = e.target.closest('.sidebar-item');
+            if (sidebarItem) {
+                e.preventDefault();
+                const section = sidebarItem.dataset.section;
+                if (section) {
+                    this.showSection(section);
+                }
+            }
+        });
 
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.handleLogout());
-        }
+        // Mobile sidebar toggle
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#mobileSidebarToggle')) {
+                document.getElementById('sidebar').classList.toggle('open');
+            }
+        });
 
+        // Search functionality
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => this.handleSearch(e));
+            searchInput.addEventListener('input', (e) => {
+                this.handleSearch(e.target.value);
+            });
         }
 
+        // Modal events
         this.bindModalEvents();
-
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                this.closeModals();
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeModals();
-            }
-        });
     }
 
     bindModalEvents() {
+        // Close modal events
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('close-modal') || e.target.closest('.close-modal')) {
+                this.closeAllModals();
+            }
+        });
+
+        // Click outside modal to close
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.closeAllModals();
+            }
+        });
+
+        // Resource form
         const resourceForm = document.getElementById('resourceForm');
         if (resourceForm) {
             resourceForm.addEventListener('submit', (e) => this.handleResourceSubmit(e));
         }
 
+        // Result form
+        const resultForm = document.getElementById('resultForm');
+        if (resultForm) {
+            resultForm.addEventListener('submit', (e) => this.handleResultSubmit(e));
+        }
+
+        // Announcement form
+        const announcementForm = document.getElementById('announcementForm');
+        if (announcementForm) {
+            announcementForm.addEventListener('submit', (e) => this.handleAnnouncementSubmit(e));
+        }
+
+        // Student edit form
         const studentEditForm = document.getElementById('studentEditForm');
         if (studentEditForm) {
             studentEditForm.addEventListener('submit', (e) => this.handleStudentEditSubmit(e));
         }
 
+        // Fee payment form
         const feePaymentForm = document.getElementById('feePaymentForm');
         if (feePaymentForm) {
             feePaymentForm.addEventListener('submit', (e) => this.handleFeePaymentSubmit(e));
         }
-
-        // Bind image upload events
-        const editStudentImageInput = document.getElementById('editStudentImageInput');
-        if (editStudentImageInput) {
-            editStudentImageInput.addEventListener('change', (e) => this.handleStudentImageUpload(e));
-        }
-
-        const closeButtons = document.querySelectorAll('.close-modal');
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', () => this.closeModals());
-        });
     }
 
     async handleLogin(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
-        const errorMsg = document.getElementById('loginError');
         const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
 
         try {
-            this.showLoading(loginBtn, true);
-            errorMsg.style.display = 'none';
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+            loginError.style.display = 'none';
 
-            console.log('🔐 Attempting login for:', email);
             const response = await this.api.login(email, password);
-
             this.api.setAuthToken(response.token);
             this.currentUser = response.user;
 
             console.log('✅ Login successful:', this.currentUser.name);
-            await this.showMainApp();
+            this.showMainApp();
+            this.showNotification(`Welcome back, ${this.currentUser.name}!`, 'success');
+            this.startAnnouncementPolling();
 
         } catch (error) {
             console.error('❌ Login failed:', error);
-            errorMsg.textContent = error.message;
-            errorMsg.style.display = 'block';
+            loginError.textContent = error.message;
+            loginError.style.display = 'block';
+            this.showNotification('Login failed. Please check your credentials.', 'error');
         } finally {
-            this.showLoading(loginBtn, false);
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
         }
     }
 
-    handleNavigation(e) {
-        e.preventDefault();
-        const section = e.currentTarget.getAttribute('data-section');
-        if (!section) return;
+    handleLogout() {
+        this.api.clearAuthToken();
+        this.currentUser = null;
+        this.stopAnnouncementPolling();
+        this.showLogin();
+        this.showNotification('You have been logged out successfully', 'info');
+    }
 
-        this.currentSection = section;
+    showLogin() {
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+    }
 
+    showMainApp() {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        this.updateUserInfo();
+        this.showSection('dashboard');
+    }
+
+    updateUserInfo() {
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userInfo = document.getElementById('userInfo');
+
+        if (userAvatar) {
+            userAvatar.src = this.currentUser.profileImage || 'https://via.placeholder.com/40';
+        }
+        if (userName) {
+            userName.textContent = this.currentUser.name;
+        }
+        if (userInfo) {
+            userInfo.textContent = this.currentUser.role === 'teacher' ? 'Teacher' : 'Student';
+        }
+
+        // Show/hide sections based on role
+        const teacherOnlySections = document.querySelectorAll('.teacher-only');
+        const studentOnlySections = document.querySelectorAll('.student-only');
+        
+        teacherOnlySections.forEach(section => {
+            section.style.display = this.currentUser.role === 'teacher' ? 'block' : 'none';
+        });
+        
+        studentOnlySections.forEach(section => {
+            section.style.display = this.currentUser.role === 'student' ? 'block' : 'none';
+        });
+
+        // Set body attribute for CSS targeting
+        document.body.setAttribute('data-user-role', this.currentUser.role);
+    }
+
+    // Start polling for new announcements
+    startAnnouncementPolling() {
+        if (this.currentUser && this.currentUser.role === 'student') {
+            this.updateAnnouncementBadge();
+            this.announcementPollInterval = setInterval(() => {
+                this.updateAnnouncementBadge();
+            }, 30000); // Check every 30 seconds
+        }
+    }
+
+    stopAnnouncementPolling() {
+        if (this.announcementPollInterval) {
+            clearInterval(this.announcementPollInterval);
+            this.announcementPollInterval = null;
+        }
+    }
+
+    async updateAnnouncementBadge() {
+        try {
+            const response = await this.api.getUnreadAnnouncementsCount();
+            const count = response.count;
+            
+            // Update notice board badge
+            const noticeMenuItem = document.querySelector('[data-section="notices"]');
+            if (noticeMenuItem) {
+                let badge = noticeMenuItem.querySelector('.notification-badge');
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'notification-badge';
+                        noticeMenuItem.appendChild(badge);
+                    }
+                    badge.textContent = count > 99 ? '99+' : count.toString();
+                } else if (badge) {
+                    badge.remove();
+                }
+            }
+
+        } catch (error) {
+            console.error('❌ Error updating announcement badge:', error);
+        }
+    }
+
+    async showSection(sectionName) {
+        this.currentSection = sectionName;
+        
+        // Update active sidebar item
         document.querySelectorAll('.sidebar-item').forEach(item => {
             item.classList.remove('active');
         });
-        e.currentTarget.classList.add('active');
+        const activeItem = document.querySelector(`[data-section="${sectionName}"]`);
+        if (activeItem) {
+            activeItem.classList.add('active');
+        }
 
+        // Update page title
         const pageTitle = document.getElementById('pageTitle');
         if (pageTitle) {
-            const titles = {
-                'dashboard': 'Dashboard',
-                'notes': 'Notes',
-                'questions': 'Questions', 
-                'books': 'Books',
-                'schedule': 'Schedule',
-                'students': 'Students',
-                'fees': 'Fee Management',
-                'profile': 'Profile',
-                'settings': 'Settings'
-            };
-            pageTitle.textContent = titles[section] || section.charAt(0).toUpperCase() + section.slice(1);
+            pageTitle.textContent = this.getSectionTitle(sectionName);
         }
 
-        this.closeMobileSidebar();
-        this.loadSection(section);
+        // Load section content
+        const contentArea = document.getElementById('contentArea');
+        if (contentArea) {
+            contentArea.innerHTML = '<div class="loading-state"><div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div><p>Loading content...</p></div>';
+
+            try {
+                switch (sectionName) {
+                    case 'dashboard':
+                        await this.loadDashboard();
+                        break;
+                    case 'notes':
+                        await this.loadResources('note');
+                        break;
+                    case 'questions':
+                        await this.loadResources('question');
+                        break;
+                    case 'books':
+                        await this.loadResources('book');
+                        break;
+                    case 'schedule':
+                        await this.loadSchedules();
+                        break;
+                    case 'students':
+                        await this.loadStudents();
+                        break;
+                    case 'fees':
+                        await this.loadFees();
+                        break;
+                    case 'results':
+                        await this.loadResults();
+                        break;
+                    case 'announcements':
+                        await this.loadAnnouncements();
+                        break;
+                    case 'notices':
+                        await this.loadNoticeBoard();
+                        break;
+                    case 'profile':
+                        await this.loadProfile();
+                        break;
+                    case 'settings':
+                        await this.loadSettings();
+                        break;
+                    default:
+                        contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Section Not Found</h2><p>The requested section could not be found.</p></div>`;
+                }
+            } catch (error) {
+                console.error(`❌ Error loading ${sectionName}:`, error);
+                contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading Content</h2><p>${error.message}</p></div>`;
+            }
+        }
     }
 
-    async loadSection(section) {
-        console.log('📄 Loading section:', section);
-        const contentArea = document.getElementById('contentArea');
-
-        switch (section) {
-            case 'dashboard':
-                await this.loadDashboard();
-                break;
-            case 'notes':
-                await this.loadResources('note');
-                break;
-            case 'questions':
-                await this.loadResources('question');
-                break;
-            case 'books':
-                await this.loadResources('book');
-                break;
-            case 'schedule':
-                await this.loadSchedules();
-                break;
-            case 'students':
-                await this.loadStudents();
-                break;
-            case 'fees':
-                await this.loadFeeManagement();
-                break;
-            case 'profile':
-                await this.loadProfile();
-                break;
-            case 'settings':
-                this.loadSettings();
-                break;
-            default:
-                contentArea.innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h2>Section Not Found</h2>
-                        <p>The requested section could not be found.</p>
-                    </div>
-                `;
-                break;
-        }
+    getSectionTitle(sectionName) {
+        const titles = {
+            dashboard: 'Dashboard',
+            notes: 'Notes',
+            questions: 'Questions',
+            books: 'Books',
+            schedule: 'Schedule',
+            students: 'Students',
+            fees: 'Fee Management',
+            results: 'Results',
+            announcements: 'Announcements',
+            notices: 'Notice Board',
+            profile: 'Profile',
+            settings: 'Settings'
+        };
+        return titles[sectionName] || 'Unknown';
     }
 
     async loadDashboard() {
         const contentArea = document.getElementById('contentArea');
         
         try {
+            const stats = await this.api.getDashboardStats();
+            
             if (this.currentUser.role === 'teacher') {
-                const stats = await this.api.getDashboardStats();
-                const feeStats = await this.api.getFeeStats();
-                
                 contentArea.innerHTML = `
                     <div class="dashboard-header">
-                        <h1>Teacher Dashboard</h1>
+                        <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
                         <p>Here's an overview of your teaching platform.</p>
                     </div>
                     
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon notes-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
+                            <div class="stat-icon notes-icon"><i class="fas fa-sticky-note"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.notes}</h3>
+                                <h3>${stats.notes || 0}</h3>
                                 <p>Notes</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon questions-icon">
-                                <i class="fas fa-question-circle"></i>
-                            </div>
+                            <div class="stat-icon questions-icon"><i class="fas fa-question-circle"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.questions}</h3>
+                                <h3>${stats.questions || 0}</h3>
                                 <p>Questions</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon books-icon">
-                                <i class="fas fa-book-open"></i>
-                            </div>
+                            <div class="stat-icon books-icon"><i class="fas fa-book"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.books}</h3>
+                                <h3>${stats.books || 0}</h3>
                                 <p>Books</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon students-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
+                            <div class="stat-icon students-icon"><i class="fas fa-users"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.students}</h3>
+                                <h3>${stats.students || 0}</h3>
                                 <p>Students</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon schedule-icon">
-                                <i class="fas fa-calendar-alt"></i>
-                            </div>
+                            <div class="stat-icon schedule-icon"><i class="fas fa-calendar-alt"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.schedules}</h3>
+                                <h3>${stats.schedules || 0}</h3>
                                 <p>Schedules</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                <i class="fas fa-money-bill-wave"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3>${feeStats?.paidStudents || 0}</h3>
-                                <p>Paid Fees</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3>${feeStats?.pendingStudents || 0}</h3>
-                                <p>Pending Fees</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="stat-content">
-                                <h3>${feeStats?.overdueStudents || 0}</h3>
-                                <p>Overdue Fees</p>
                             </div>
                         </div>
                     </div>
@@ -790,506 +869,479 @@ class EducationApp {
                             <button class="btn btn--primary" onclick="app.openResourceModal('book')">
                                 <i class="fas fa-plus"></i> Add Book
                             </button>
-                            <button class="btn btn--primary" onclick="app.loadSection('fees')">
-                                <i class="fas fa-money-bill-wave"></i> Manage Fees
+                            <button class="btn btn--primary" onclick="app.openAnnouncementModal()">
+                                <i class="fas fa-bullhorn"></i> New Announcement
                             </button>
                         </div>
                     </div>
                 `;
             } else {
-                const stats = await this.api.getDashboardStats();
-                const feeStatus = await this.api.getStudentFeeStatus();
-                
-                // Generate fee notifications for student
-                let feeNotifications = '';
-                if (feeStatus && feeStatus.length > 0) {
-                    const pendingFees = feeStatus.filter(fee => fee.status === 'pending');
-                    const overdueFees = feeStatus.filter(fee => fee.status === 'overdue');
-                    
-                    if (overdueFees.length > 0) {
-                        feeNotifications += `
-                            <div class="fee-alert fee-alert--danger">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <div>
-                                    <h3>⚠️ Overdue Fee Alert</h3>
-                                    <p>You have ${overdueFees.length} overdue fee(s). Please pay immediately to avoid account suspension.</p>
-                                </div>
+                // Student dashboard with fee status
+                const fees = await this.api.getStudentFeeStatus();
+                const paidFees = fees.filter(fee => fee.status === 'paid');
+                const pendingFees = fees.filter(fee => fee.status === 'pending');
+                const overdueFees = fees.filter(fee => fee.status === 'overdue');
+
+                let feeStatusHtml = '';
+                if (overdueFees.length > 0) {
+                    feeStatusHtml = `
+                        <div class="fee-alert fee-alert--danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <h3>Overdue Fees</h3>
+                                <p>You have ${overdueFees.length} overdue fee(s). Please pay immediately to avoid account suspension.</p>
                             </div>
-                        `;
-                    } else if (pendingFees.length > 0) {
-                        feeNotifications += `
-                            <div class="fee-alert fee-alert--warning">
-                                <i class="fas fa-clock"></i>
-                                <div>
-                                    <h3>📋 Fee Payment Reminder</h3>
-                                    <p>You have ${pendingFees.length} pending fee payment(s). Please pay on time to continue your classes.</p>
-                                </div>
+                        </div>
+                    `;
+                } else if (pendingFees.length > 0) {
+                    feeStatusHtml = `
+                        <div class="fee-alert fee-alert--warning">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Pending Fees</h3>
+                                <p>You have ${pendingFees.length} pending fee payment(s). Please pay on time to continue your classes.</p>
                             </div>
-                        `;
-                    } else {
-                        feeNotifications += `
-                            <div class="fee-alert fee-alert--success">
-                                <i class="fas fa-check-circle"></i>
-                                <div>
-                                    <h3>✅ All Fees Paid</h3>
-                                    <p>Great! All your fees are up to date. Keep up the good work!</p>
-                                </div>
+                        </div>
+                    `;
+                } else {
+                    feeStatusHtml = `
+                        <div class="fee-alert fee-alert--success">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>All Fees Paid</h3>
+                                <p>Great! All your fees are up to date. Keep up the good work!</p>
                             </div>
-                        `;
-                    }
+                        </div>
+                    `;
                 }
-                
+
                 contentArea.innerHTML = `
                     <div class="dashboard-header">
-                        <h1>Student Dashboard</h1>
+                        <h1><i class="fas fa-home"></i> Welcome Back, ${this.currentUser.name}!</h1>
                         <p>Welcome back! Continue your learning journey.</p>
                     </div>
-                    
-                    ${feeNotifications}
+
+                    ${feeStatusHtml}
                     
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon resources-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
+                            <div class="stat-icon resources-icon"><i class="fas fa-book-open"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.totalResources}</h3>
+                                <h3>${stats.totalResources || 0}</h3>
                                 <p>Total Resources</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon schedule-icon">
-                                <i class="fas fa-calendar-alt"></i>
-                            </div>
+                            <div class="stat-icon schedule-icon"><i class="fas fa-calendar-check"></i></div>
                             <div class="stat-content">
-                                <h3>${stats.upcomingSchedules}</h3>
+                                <h3>${stats.upcomingSchedules || 0}</h3>
                                 <p>Upcoming Classes</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                                <i class="fas fa-money-bill-wave"></i>
-                            </div>
+                            <div class="stat-icon notes-icon"><i class="fas fa-money-check-alt"></i></div>
                             <div class="stat-content">
-                                <h3>${feeStatus?.filter(f => f.status === 'paid').length || 0}</h3>
+                                <h3>${paidFees.length}</h3>
                                 <p>Fees Paid</p>
                             </div>
                         </div>
-                        
                         <div class="stat-card">
-                            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                                <i class="fas fa-clock"></i>
-                            </div>
+                            <div class="stat-icon questions-icon"><i class="fas fa-clock"></i></div>
                             <div class="stat-content">
-                                <h3>${feeStatus?.filter(f => f.status === 'pending' || f.status === 'overdue').length || 0}</h3>
+                                <h3>${pendingFees.length + overdueFees.length}</h3>
                                 <p>Pending Fees</p>
                             </div>
                         </div>
                     </div>
-                    
-                    ${feeStatus && feeStatus.length > 0 ? `
-                        <div class="fee-status-section">
-                            <h2><i class="fas fa-money-bill-wave"></i> Fee Status</h2>
-                            <div class="fee-status-grid">
-                                ${feeStatus.map(fee => `
-                                    <div class="fee-status-card fee-status--${fee.status}">
-                                        <div class="fee-month">${fee.month} ${fee.year}</div>
-                                        <div class="fee-amount">₹${fee.amount}</div>
-                                        <div class="fee-status-badge fee-badge--${fee.status}">
-                                            ${fee.status.charAt(0).toUpperCase() + fee.status.slice(1)}
-                                        </div>
-                                        ${fee.paymentDate ? `<div class="fee-date">Paid on ${new Date(fee.paymentDate).toLocaleDateString()}</div>` : ''}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
                 `;
             }
         } catch (error) {
             console.error('❌ Error loading dashboard:', error);
-            contentArea.innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h2>Error Loading Dashboard</h2>
-                    <p>Unable to load dashboard data. Please try again.</p>
-                </div>
-            `;
+            contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading Dashboard</h2><p>Unable to load dashboard data. Please try again.</p></div>`;
         }
     }
 
-    async loadFeeManagement() {
-        if (this.currentUser.role !== 'teacher') {
-            return;
-        }
-
+    // NEW: Load Announcements (Teacher View)
+    async loadAnnouncements() {
         const contentArea = document.getElementById('contentArea');
-        contentArea.innerHTML = `
-            <div class="loading-state">
-                <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <p>Loading fee management...</p>
-            </div>
-        `;
 
         try {
-            const studentFees = await this.api.getStudentFees();
-            const feeStats = await this.api.getFeeStats();
-
-            const paidStudents = studentFees.filter(student => {
-                return student.fees.some(fee => fee.status === 'paid');
-            });
-
-            const unpaidStudents = studentFees.filter(student => {
-                return student.fees.some(fee => fee.status === 'pending' || fee.status === 'overdue');
-            });
-
-            const allPaidStudents = studentFees.filter(student => {
-                return student.fees.every(fee => fee.status === 'paid');
-            });
-
-            let feesHtml = '';
-            
-            if (studentFees.length === 0) {
-                feesHtml = `
-                    <div class="empty-state">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <h3>No Fee Records</h3>
-                        <p>No fee records found. Add students and manage their fees.</p>
-                    </div>
-                `;
-            } else {
-                const studentFeeCards = studentFees.map(student => {
-                    const latestFee = student.fees[0]; // Assuming fees are sorted by latest
-                    const totalPaid = student.fees.filter(f => f.status === 'paid').length;
-                    const totalPending = student.fees.filter(f => f.status === 'pending' || f.status === 'overdue').length;
-
-                    const imageSrc = student.profileImage
-                        ? (student.profileImage.startsWith('http')
-                            ? student.profileImage
-                            : `${this.api.baseURL.replace('/api', '')}/${student.profileImage}`)
-                        : 'https://via.placeholder.com/60';
-
-                    return `
-                        <div class="fee-student-card">
-                            <div class="student-header">
-                                <img src="${imageSrc}" alt="${student.name}">
-                                <div class="student-info">
-                                    <h3>${student.name}</h3>
-                                    <p>${student.email}</p>
-                                    <div class="fee-summary">
-                                        <span class="fee-paid">✅ Paid: ${totalPaid}</span>
-                                        <span class="fee-pending">⏳ Pending: ${totalPending}</span>
-                                    </div>
-                                </div>
-                                <div class="student-actions">
-                                    <button class="btn btn--primary btn-sm" onclick="app.openFeePaymentModal('${student._id}', '${student.name}')">
-                                        <i class="fas fa-money-bill-wave"></i> Manage Fee
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="recent-fees">
-                                <h4>Recent Fee Records</h4>
-                                <div class="fee-records">
-                                    ${student.fees.slice(0, 3).map(fee => `
-                                        <div class="fee-record fee-record--${fee.status}">
-                                            <span class="fee-month">${fee.month} ${fee.year}</span>
-                                            <span class="fee-amount">₹${fee.amount}</span>
-                                            <span class="fee-status fee-status--${fee.status}">
-                                                ${fee.status.charAt(0).toUpperCase() + fee.status.slice(1)}
-                                            </span>
-                                            ${fee.paymentDate ? `<span class="fee-date">${new Date(fee.paymentDate).toLocaleDateString()}</span>` : ''}
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                feesHtml = `
-                    <div class="fee-stats-grid">
-                        <div class="fee-stat-card fee-stat--paid">
-                            <i class="fas fa-check-circle"></i>
-                            <div>
-                                <h3>${feeStats?.paidStudents || 0}</h3>
-                                <p>Students with Paid Fees</p>
-                            </div>
-                        </div>
-                        
-                        <div class="fee-stat-card fee-stat--pending">
-                            <i class="fas fa-clock"></i>
-                            <div>
-                                <h3>${feeStats?.pendingStudents || 0}</h3>
-                                <p>Students with Pending Fees</p>
-                            </div>
-                        </div>
-                        
-                        <div class="fee-stat-card fee-stat--overdue">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div>
-                                <h3>${feeStats?.overdueStudents || 0}</h3>
-                                <p>Students with Overdue Fees</p>
-                            </div>
-                        </div>
-                        
-                        <div class="fee-stat-card fee-stat--total">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <div>
-                                <h3>₹${feeStats?.totalAmount || 0}</h3>
-                                <p>Total Fee Collection</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="fee-filters">
-                        <button class="btn btn--secondary filter-btn active" onclick="app.filterFees('all')">All Students</button>
-                        <button class="btn btn--secondary filter-btn" onclick="app.filterFees('paid')">Paid (${allPaidStudents.length})</button>
-                        <button class="btn btn--secondary filter-btn" onclick="app.filterFees('pending')">Pending (${unpaidStudents.length})</button>
-                    </div>
-                    
-                    <div class="fee-students-grid" id="feeStudentsGrid">
-                        ${studentFeeCards}
-                    </div>
-                `;
-            }
+            const announcements = await this.api.getAnnouncements();
 
             contentArea.innerHTML = `
                 <div class="section-header">
-                    <h1><i class="fas fa-money-bill-wave"></i> Fee Management</h1>
-                    <div class="fee-actions">
-                        <button class="btn btn--primary" onclick="app.loadSection('students')">
-                            <i class="fas fa-plus"></i> Add Student
+                    <h1><i class="fas fa-bullhorn"></i> Announcements</h1>
+                    ${this.currentUser.role === 'teacher' ? `
+                        <button class="btn btn--primary" onclick="app.openAnnouncementModal()">
+                            <i class="fas fa-plus"></i> New Announcement
                         </button>
+                    ` : ''}
+                </div>
+
+                <div class="announcements-grid">
+                    ${announcements.length === 0 ? `
+                        <div class="empty-state">
+                            <i class="fas fa-bullhorn"></i>
+                            <h3>No Announcements</h3>
+                            <p>There are no announcements at the moment.${this.currentUser.role === 'teacher' ? ' Create your first announcement!' : ''}</p>
+                        </div>
+                    ` : announcements.map(announcement => this.renderAnnouncementCard(announcement)).join('')}
+                </div>
+            `;
+
+        } catch (error) {
+            console.error('❌ Error loading announcements:', error);
+            contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading Announcements</h2><p>Unable to load announcements. Please try again.</p></div>`;
+        }
+    }
+
+    // NEW: Load Notice Board (Student View)
+    async loadNoticeBoard() {
+        const contentArea = document.getElementById('contentArea');
+
+        try {
+            const announcements = await this.api.getAnnouncements();
+
+            // Mark announcements as read when student views them
+            const unreadAnnouncements = announcements.filter(a => !a.readBy.includes(this.currentUser.id));
+            for (const announcement of unreadAnnouncements) {
+                try {
+                    await this.api.markAnnouncementAsRead(announcement._id);
+                } catch (error) {
+                    console.error('❌ Error marking announcement as read:', error);
+                }
+            }
+
+            // Update badge after marking as read
+            setTimeout(() => this.updateAnnouncementBadge(), 1000);
+
+            contentArea.innerHTML = `
+                <div class="section-header">
+                    <h1><i class="fas fa-clipboard-list"></i> Notice Board</h1>
+                    <div class="notice-stats">
+                        <span class="notice-count">
+                            <i class="fas fa-bell"></i>
+                            ${announcements.length} Total Notices
+                        </span>
+                    </div>
+                </div>
+
+                <div class="notices-container">
+                    ${announcements.length === 0 ? `
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>No Notices</h3>
+                            <p>There are no notices from your teacher at the moment.</p>
+                        </div>
+                    ` : announcements.map(announcement => this.renderNoticeCard(announcement)).join('')}
+                </div>
+            `;
+
+        } catch (error) {
+            console.error('❌ Error loading notice board:', error);
+            contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading Notice Board</h2><p>Unable to load notices. Please try again.</p></div>`;
+        }
+    }
+
+    renderAnnouncementCard(announcement) {
+        const createdDate = new Date(announcement.createdAt);
+        const isUrgent = announcement.priority === 'high';
+        
+        return `
+            <div class="announcement-card ${isUrgent ? 'announcement-card--urgent' : ''}" data-id="${announcement._id}">
+                <div class="announcement-header">
+                    <div class="announcement-title">
+                        <h3>
+                            ${isUrgent ? '<i class="fas fa-exclamation-triangle text-warning"></i>' : '<i class="fas fa-bullhorn"></i>'}
+                            ${announcement.title}
+                        </h3>
+                        <span class="announcement-priority priority--${announcement.priority}">
+                            ${announcement.priority.toUpperCase()}
+                        </span>
+                    </div>
+                    ${this.currentUser.role === 'teacher' ? `
+                        <div class="announcement-actions">
+                            <button class="btn btn--secondary btn-icon" onclick="app.editAnnouncement('${announcement._id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn--danger btn-icon" onclick="app.deleteAnnouncement('${announcement._id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+                
+                <div class="announcement-content">
+                    <p>${announcement.content}</p>
+                </div>
+                
+                <div class="announcement-meta">
+                    <span><i class="fas fa-calendar"></i> ${createdDate.toLocaleDateString()}</span>
+                    <span><i class="fas fa-clock"></i> ${createdDate.toLocaleTimeString()}</span>
+                    ${this.currentUser.role === 'teacher' ? `
+                        <span><i class="fas fa-eye"></i> ${announcement.readBy.length} read</span>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    renderNoticeCard(announcement) {
+        const createdDate = new Date(announcement.createdAt);
+        const isUrgent = announcement.priority === 'high';
+        const isRead = announcement.readBy.includes(this.currentUser.id);
+        
+        return `
+            <div class="notice-card ${isUrgent ? 'notice-card--urgent' : ''} ${!isRead ? 'notice-card--unread' : ''}" data-id="${announcement._id}">
+                <div class="notice-header">
+                    <div class="notice-title">
+                        <h3>
+                            ${isUrgent ? '<i class="fas fa-exclamation-triangle text-warning"></i>' : '<i class="fas fa-bell"></i>'}
+                            ${announcement.title}
+                            ${!isRead ? '<span class="new-badge">NEW</span>' : ''}
+                        </h3>
+                        <span class="notice-priority priority--${announcement.priority}">
+                            ${announcement.priority.toUpperCase()}
+                        </span>
+                    </div>
+                    <div class="notice-date">
+                        <span>${createdDate.toLocaleDateString()}</span>
+                        <span>${createdDate.toLocaleTimeString()}</span>
                     </div>
                 </div>
                 
-                ${feesHtml}
-            `;
-
-        } catch (error) {
-            console.error('❌ Error loading fee management:', error);
-            contentArea.innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h2>Error Loading Fee Management</h2>
-                    <p>Unable to load fee data. Please try again.</p>
+                <div class="notice-content">
+                    <p>${announcement.content}</p>
                 </div>
-            `;
+                
+                <div class="notice-footer">
+                    <span class="notice-author">
+                        <i class="fas fa-user"></i>
+                        ${announcement.createdBy.name}
+                    </span>
+                    <span class="notice-status ${isRead ? 'status--read' : 'status--unread'}">
+                        <i class="fas fa-${isRead ? 'check-circle' : 'circle'}"></i>
+                        ${isRead ? 'Read' : 'Unread'}
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+
+    openAnnouncementModal(announcementId = null) {
+        const modal = document.getElementById('announcementModal');
+        const form = document.getElementById('announcementForm');
+        const modalTitle = document.getElementById('announcementModalTitle');
+        
+        form.reset();
+        
+        if (announcementId) {
+            modalTitle.textContent = 'Edit Announcement';
+            document.getElementById('announcementId').value = announcementId;
+            // Load announcement data here if editing
+        } else {
+            modalTitle.textContent = 'New Announcement';
+            document.getElementById('announcementId').value = '';
         }
-    }
-
-    filterFees(type) {
-        // Update filter button styles
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
-
-        // Filter the fee cards (implementation can be enhanced)
-        const cards = document.querySelectorAll('.fee-student-card');
-        cards.forEach(card => {
-            // Simple show/hide based on filter type
-            // In a real implementation, you'd filter based on actual fee status
-            card.style.display = 'block';
-        });
-    }
-
-    openFeePaymentModal(studentId, studentName) {
-        document.getElementById('paymentStudentId').value = studentId;
-        document.getElementById('paymentStudentName').value = studentName;
         
-        // Set current month and year as default
-        const now = new Date();
-        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                       'July', 'August', 'September', 'October', 'November', 'December'];
-        document.getElementById('paymentMonth').value = months[now.getMonth()];
-        document.getElementById('paymentYear').value = now.getFullYear();
-        
-        document.getElementById('feePaymentModal').classList.add('show');
+        modal.classList.add('show');
     }
 
-    async handleFeePaymentSubmit(e) {
+    async handleAnnouncementSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const feeData = Object.fromEntries(formData.entries());
-
-        try {
-            this.showNotification('Updating fee status...', 'info');
-            
-            await this.api.updateFeeStatus(feeData);
-            
-            this.showNotification('Fee status updated successfully!', 'success');
-            
-            // Close modal and refresh
-            this.closeModals();
-            await this.loadFeeManagement();
-            
-        } catch (error) {
-            console.error('❌ Error updating fee status:', error);
-            this.showNotification(`Failed to update fee status: ${error.message}`, 'error');
-        }
-    }
-
-    async loadProfile() {
-        const contentArea = document.getElementById('contentArea');
+        const form = e.target;
+        const formData = new FormData(form);
+        const announcementId = formData.get('announcementId');
         
+        const announcementData = {
+            title: formData.get('title'),
+            content: formData.get('content'),
+            priority: formData.get('priority') || 'normal'
+        };
+
         try {
-            const user = await this.api.getUserProfile();
-            
-            const memberSince = new Date(user.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long'
-            });
-            
-            const lastUpdated = user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            }) : 'Never';
-
-            const profileImageSrc = user.profileImage
-                ? (user.profileImage.startsWith('http')
-                    ? user.profileImage
-                    : `${this.api.baseURL.replace('/api', '')}/${user.profileImage}`)
-                : 'https://via.placeholder.com/200';
-
-            contentArea.innerHTML = `
-                <div class="profile-container">
-                    <div class="profile-header">
-                        <h1><i class="fas fa-user"></i> My Profile</h1>
-                        <p>Manage your personal information and settings</p>
-                    </div>
-                    
-                    <div class="profile-content">
-                        <div class="profile-image-section">
-                            <div class="profile-image-container">
-                                <img src="${profileImageSrc}" alt="Profile Picture" class="profile-image" id="profileImage">
-                                <div class="image-overlay" onclick="document.getElementById('profileImageInput').click()">
-                                    <i class="fas fa-camera"></i>
-                                    <span>Change Photo</span>
-                                </div>
-                                <input type="file" id="profileImageInput" accept="image/*" style="display: none;">
-                            </div>
-                            
-                            <div class="image-actions">
-                                <button class="btn btn--primary file-upload-btn" onclick="document.getElementById('profileImageInput').click()">
-                                    <i class="fas fa-upload"></i> Upload New Photo
-                                </button>
-                                <button class="btn btn--secondary" onclick="app.removeProfileImage()">
-                                    <i class="fas fa-trash"></i> Remove Photo
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="profile-info-section">
-                            <form class="profile-form" id="profileForm">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        <i class="fas fa-user"></i> Full Name
-                                    </label>
-                                    <input type="text" name="name" class="form-control" value="${user.name || ''}" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        <i class="fas fa-envelope"></i> Email Address
-                                    </label>
-                                    <input type="email" class="form-control" value="${user.email}" disabled>
-                                    <small class="form-help">Email address cannot be changed</small>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        <i class="fas fa-phone"></i> Phone Number
-                                    </label>
-                                    <input type="tel" name="phone" class="form-control" value="${user.phone || ''}" placeholder="+91 9876543210">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        <i class="fas fa-calendar"></i> Date of Birth
-                                    </label>
-                                    <input type="date" name="dateOfBirth" class="form-control" value="${user.dateOfBirth || ''}">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        <i class="fas fa-info-circle"></i> Bio
-                                    </label>
-                                    <textarea name="bio" class="form-control" rows="4" placeholder="Tell us about yourself...">${user.bio || ''}</textarea>
-                                </div>
-                                
-                                <div class="profile-actions">
-                                    <button type="button" class="btn btn--secondary" onclick="app.loadProfile()">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </button>
-                                    <button type="submit" class="btn btn--primary">
-                                        <i class="fas fa-save"></i> Save Changes
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    
-                    <div class="account-info-section">
-                        <h3><i class="fas fa-info-circle"></i> Account Information</h3>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Role</label>
-                                <span>${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Member Since</label>
-                                <span>${memberSince}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Last Updated</label>
-                                <span>${lastUpdated}</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Account Status</label>
-                                <span class="status status--success">Active</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Bind profile form submit
-            const profileForm = document.getElementById('profileForm');
-            if (profileForm) {
-                profileForm.addEventListener('submit', (e) => this.handleProfileSubmit(e));
+            if (announcementId) {
+                await this.api.updateAnnouncement(announcementId, announcementData);
+                this.showNotification('Announcement updated successfully!', 'success');
+            } else {
+                await this.api.createAnnouncement(announcementData);
+                this.showNotification('Announcement created successfully!', 'success');
             }
-
-            // Bind profile image upload
-            const profileImageInput = document.getElementById('profileImageInput');
-            if (profileImageInput) {
-                profileImageInput.addEventListener('change', (e) => this.handleProfileImageUpload(e));
+            
+            this.closeAllModals();
+            if (this.currentSection === 'announcements') {
+                this.loadAnnouncements();
             }
-
         } catch (error) {
-            console.error('❌ Error loading profile:', error);
-            contentArea.innerHTML = `
-                <div class="error-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h2>Error Loading Profile</h2>
-                    <p>Unable to load profile data. Please try again.</p>
-                </div>
-            `;
+            console.error('❌ Error saving announcement:', error);
+            this.showNotification('Failed to save announcement: ' + error.message, 'error');
         }
     }
 
-    async loadStudents() {
-        if (this.currentUser.role !== 'teacher') {
+    async deleteAnnouncement(announcementId) {
+        if (!confirm('Are you sure you want to delete this announcement?')) {
             return;
         }
 
+        try {
+            await this.api.deleteAnnouncement(announcementId);
+            this.showNotification('Announcement deleted successfully!', 'success');
+            if (this.currentSection === 'announcements') {
+                this.loadAnnouncements();
+            }
+        } catch (error) {
+            console.error('❌ Error deleting announcement:', error);
+            this.showNotification('Failed to delete announcement: ' + error.message, 'error');
+        }
+    }
+
+    async loadResources(type) {
         const contentArea = document.getElementById('contentArea');
+        const typeTitle = type.charAt(0).toUpperCase() + type.slice(1) + 's';
+
+        try {
+            const resources = await this.api.getResources(type);
+
+            contentArea.innerHTML = `
+                <div class="section-header">
+                    <h1><i class="fas fa-${type === 'note' ? 'sticky-note' : type === 'question' ? 'question-circle' : 'book'}"></i> ${typeTitle}</h1>
+                    ${this.currentUser.role === 'teacher' ? `
+                        <button class="btn btn--primary" onclick="app.openResourceModal('${type}')">
+                            <i class="fas fa-plus"></i> Add ${type.charAt(0).toUpperCase() + type.slice(1)}
+                        </button>
+                    ` : ''}
+                </div>
+
+                <div class="resources-grid">
+                    ${resources.length === 0 ? `
+                        <div class="empty-state">
+                            <i class="fas fa-${type === 'note' ? 'sticky-note' : type === 'question' ? 'question-circle' : 'book'}"></i>
+                            <h3>No ${typeTitle} Available</h3>
+                            <p>There are no ${typeTitle.toLowerCase()} available at the moment.${this.currentUser.role === 'teacher' ? ` <button class="btn btn--primary" onclick="app.openResourceModal('${type}')">Add ${type.charAt(0).toUpperCase() + type.slice(1)}</button>` : ''}</p>
+                        </div>
+                    ` : resources.map(resource => this.renderResourceCard(resource)).join('')}
+                </div>
+            `;
+
+        } catch (error) {
+            console.error(`❌ Error loading ${type}s:`, error);
+            contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading ${typeTitle}</h2><p>Unable to load ${typeTitle.toLowerCase()}. Please try again.</p></div>`;
+        }
+    }
+
+    renderResourceCard(resource) {
+        const uploadDate = new Date(resource.createdAt).toLocaleDateString();
+        const fileSize = (resource.fileSize / (1024 * 1024)).toFixed(2) + ' MB';
+
+        return `
+            <div class="resource-card" data-id="${resource._id}">
+                <div class="resource-header">
+                    <h3>${resource.title}</h3>
+                    <div class="resource-actions">
+                        <button class="btn btn--secondary btn-icon" onclick="app.downloadResource('${resource._id}')" title="Download">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        ${this.currentUser.role === 'teacher' ? `
+                            <button class="btn btn--danger btn-icon" onclick="app.deleteResource('${resource._id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <div class="resource-description">
+                    ${resource.description || 'No description available.'}
+                </div>
+                
+                <div class="resource-meta">
+                    <span><i class="fas fa-calendar"></i> ${uploadDate}</span>
+                    <span><i class="fas fa-hdd"></i> ${fileSize}</span>
+                    <span><i class="fas fa-user"></i> ${resource.uploadedBy.name}</span>
+                    <span><i class="fas fa-file"></i> ${resource.fileName}</span>
+                </div>
+                
+                <div class="resource-footer">
+                    <button class="btn btn--primary" onclick="app.downloadResource('${resource._id}')">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    async loadSchedules() {
+        const contentArea = document.getElementById('contentArea');
+        
+        try {
+            const schedules = await this.api.getSchedules();
+            
+            contentArea.innerHTML = `
+                <div class="section-header">
+                    <h1><i class="fas fa-calendar-alt"></i> Schedules</h1>
+                </div>
+
+                ${schedules.length === 0 ? `
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>No Schedules</h3>
+                        <p>There are no scheduled classes at the moment.</p>
+                    </div>
+                ` : `
+                    <div class="schedules-grid">
+                        ${schedules.map(schedule => this.renderScheduleCard(schedule)).join('')}
+                    </div>
+                `}
+            `;
+        } catch (error) {
+            console.error('❌ Error loading schedules:', error);
+            contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading Schedules</h2><p>Unable to load schedules. Please try again.</p></div>`;
+        }
+    }
+
+    renderScheduleCard(schedule) {
+        const scheduleDate = new Date(schedule.date).toLocaleDateString();
+        
+        return `
+            <div class="schedule-card" data-id="${schedule._id}">
+                <div class="schedule-header">
+                    <h3>${schedule.title}</h3>
+                    ${this.currentUser.role === 'teacher' ? `
+                        <button class="btn btn--danger btn-icon" onclick="app.deleteSchedule('${schedule._id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </div>
+                
+                <div class="schedule-description">
+                    ${schedule.description || 'No description available.'}
+                </div>
+                
+                <div class="schedule-meta">
+                    <span><i class="fas fa-calendar"></i> ${scheduleDate}</span>
+                    <span><i class="fas fa-clock"></i> ${schedule.time}</span>
+                    ${schedule.meetingLink ? `<span><i class="fas fa-link"></i> Online Meeting</span>` : ''}
+                </div>
+                
+                <div class="schedule-footer">
+                    ${schedule.meetingLink ? `
+                        <a href="${schedule.meetingLink}" target="_blank" class="btn btn--primary">
+                            <i class="fas fa-video"></i> Join Meeting
+                        </a>
+                    ` : ''}
+                    ${schedule.password ? `
+                        <div class="meeting-password">
+                            <i class="fas fa-key"></i>
+                            Password: <strong>${schedule.password}</strong>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    async loadStudents() {
+        const contentArea = document.getElementById('contentArea');
+        
         contentArea.innerHTML = `
             <div class="loading-state">
                 <div class="loading-spinner">
@@ -1301,136 +1353,53 @@ class EducationApp {
 
         try {
             const students = await this.api.getStudents();
-
-            let studentsHtml = '';
             
             if (students.length === 0) {
-                studentsHtml = `
+                contentArea.innerHTML = `
+                    <div class="section-header">
+                        <h1><i class="fas fa-users"></i> Students</h1>
+                    </div>
                     <div class="empty-state">
                         <i class="fas fa-users"></i>
-                        <h3>No Students Yet</h3>
+                        <h3>No Students</h3>
                         <p>No students have been added yet.</p>
-                        <button class="btn btn--primary" onclick="app.openStudentModal()">
-                            <i class="fas fa-plus"></i> Add Student
-                        </button>
                     </div>
                 `;
-            } else {
-                const studentCards = students.map(student => {
-                    const imageSrc = student.profileImage
-                        ? (student.profileImage.startsWith('http')
-                            ? student.profileImage
-                            : `${this.api.baseURL.replace('/api', '')}/${student.profileImage}`)
-                        : 'https://via.placeholder.com/60';
-
-                    return `
-                        <div class="student-card">
-                            <div class="student-header">
-                                <div class="student-image-container" onclick="app.openStudentImageUpload('${student._id}')">
-                                    <img src="${imageSrc}" alt="${student.name}">
-                                    <div class="image-upload-overlay">
-                                        <i class="fas fa-camera"></i>
-                                    </div>
-                                </div>
-                                <div class="student-info">
-                                    <h3>${student.name}</h3>
-                                    <p>${student.email}</p>
-                                    ${student.bio ? `<small>${student.bio}</small>` : ''}
-                                </div>
-                                <div class="student-actions">
-                                    <button class="btn-icon btn--secondary" onclick="app.editStudent('${student._id}')" title="Edit student">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn-icon btn--danger" onclick="app.deleteStudent('${student._id}')" title="Delete student">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="student-meta">
-                                ${student.phone ? `<span><i class="fas fa-phone"></i> ${student.phone}</span>` : ''}
-                                ${student.dateOfBirth ? `<span><i class="fas fa-birthday-cake"></i> ${new Date(student.dateOfBirth).toLocaleDateString()}</span>` : ''}
-                                <span><i class="fas fa-calendar"></i> Joined ${new Date(student.createdAt).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                studentsHtml = `
-                    <div class="students-grid">
-                        ${studentCards}
-                    </div>
-                `;
+                return;
             }
+
+            const studentsHtml = students.map(student => `
+                <div class="student-card" data-id="${student._id}">
+                    <div class="student-header">
+                        <img src="${student.profileImage || 'https://via.placeholder.com/60'}" alt="${student.name}" />
+                        <div class="student-info">
+                            <h3>${student.name}</h3>
+                            <p>${student.email}</p>${student.bio ? `<small>${student.bio}</small>` : ''}
+                        </div>
+                        <div class="student-actions">
+                            <button class="btn btn--secondary btn-icon" onclick="app.editStudent('${student._id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn--danger btn-icon" onclick="app.deleteStudent('${student._id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="student-meta">
+                        <span><i class="fas fa-phone"></i> ${student.phone || 'N/A'}</span>
+                        <span><i class="fas fa-calendar"></i> ${student.dateOfBirth || 'N/A'}</span>
+                    </div>
+                </div>
+            `).join('');
 
             contentArea.innerHTML = `
                 <div class="section-header">
-                    <h1>Students Management</h1>
-                    <button class="btn btn--primary" onclick="app.openStudentModal()">
-                        <i class="fas fa-plus"></i> Add Student
-                    </button>
+                    <h1><i class="fas fa-users"></i> Students</h1>
                 </div>
-                
-                <div class="student-form-section" id="studentFormSection" style="display: none;">
-                    <h2>Add New Student</h2>
-                    <form id="studentForm" class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" name="name" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" name="email" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Phone Number</label>
-                            <input type="tel" name="phone" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Date of Birth</label>
-                            <input type="date" name="dateOfBirth" class="form-control">
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label class="form-label">Bio</label>
-                            <textarea name="bio" class="form-control" rows="3"></textarea>
-                        </div>
-                        
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <button type="submit" class="btn btn--primary">
-                                <i class="fas fa-plus"></i> Add Student
-                            </button>
-                            <button type="button" class="btn btn--secondary" onclick="document.getElementById('studentFormSection').style.display='none'">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
+                <div class="students-grid">
+                    ${studentsHtml}
                 </div>
-                
-                ${studentsHtml}
-
-                <!-- Hidden file input for profile image upload -->
-                <input type="file" id="studentImageUploadInput" accept="image/*" style="display: none;">
             `;
-
-            // Bind student form events
-            const studentForm = document.getElementById('studentForm');
-            if (studentForm) {
-                studentForm.addEventListener('submit', (e) => this.handleStudentSubmit(e));
-            }
-
-            // Bind student image upload
-            const studentImageUploadInput = document.getElementById('studentImageUploadInput');
-            if (studentImageUploadInput) {
-                studentImageUploadInput.addEventListener('change', (e) => this.handleStudentImageUploadDirect(e));
-            }
 
         } catch (error) {
             console.error('❌ Error loading students:', error);
@@ -1444,518 +1413,321 @@ class EducationApp {
         }
     }
 
-    // Student image upload methods
-    openStudentImageUpload(studentId) {
-        this.selectedStudentId = studentId;
-        document.getElementById('studentImageUploadInput').click();
-    }
-
-    async handleStudentImageUploadDirect(e) {
-        const file = e.target.files[0];
-        if (!file || !this.selectedStudentId) return;
-
-        try {
-            const formData = new FormData();
-            formData.append('profileImage', file);
-
-            this.showNotification('Uploading image...', 'info');
-            
-            const response = await this.api.uploadStudentProfileImage(this.selectedStudentId, formData);
-            
-            this.showNotification('Profile image updated successfully!', 'success');
-            
-            // Refresh students list
-            await this.loadStudents();
-            
-        } catch (error) {
-            console.error('❌ Error uploading student image:', error);
-            this.showNotification(`Failed to upload image: ${error.message}`, 'error');
-        }
-
-        // Clear the input
-        e.target.value = '';
-        this.selectedStudentId = null;
-    }
-
-    openStudentModal() {
-        const studentFormSection = document.getElementById('studentFormSection');
-        if (studentFormSection) {
-            studentFormSection.style.display = 'block';
-            studentFormSection.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    async handleStudentSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const studentData = Object.fromEntries(formData.entries());
+    async loadFees() {
+        const contentArea = document.getElementById('contentArea');
+        
+        contentArea.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <p>Loading fee management...</p>
+            </div>
+        `;
 
         try {
-            this.showNotification('Adding student...', 'info');
+            const studentsWithFees = await this.api.getStudentFees();
+            const feeStats = await this.api.getFeeStats();
             
-            await this.api.createStudent(studentData);
-            
-            this.showNotification('Student added successfully!', 'success');
-            
-            // Hide form and refresh students list
-            document.getElementById('studentFormSection').style.display = 'none';
-            e.target.reset();
-            await this.loadStudents();
-            
-        } catch (error) {
-            console.error('❌ Error adding student:', error);
-            this.showNotification(`Failed to add student: ${error.message}`, 'error');
-        }
-    }
-
-    async editStudent(studentId) {
-        try {
-            // Get student details
-            const students = await this.api.getStudents();
-            const student = students.find(s => s._id === studentId);
-            
-            if (!student) {
-                this.showNotification('Student not found', 'error');
+            if (studentsWithFees.length === 0) {
+                contentArea.innerHTML = `
+                    <div class="section-header">
+                        <h1><i class="fas fa-money-check-alt"></i> Fee Management</h1>
+                    </div>
+                    <div class="empty-state">
+                        <i class="fas fa-money-check-alt"></i>
+                        <h3>No Fee Records</h3>
+                        <p>No fee records found. Add students and manage their fees.</p>
+                    </div>
+                `;
                 return;
             }
 
-            // Populate edit modal
-            document.getElementById('editStudentId').value = student._id;
-            document.getElementById('editStudentName').value = student.name || '';
-            document.getElementById('editStudentEmail').value = student.email || '';
-            document.getElementById('editStudentPhone').value = student.phone || '';
-            document.getElementById('editStudentDob').value = student.dateOfBirth || '';
-            document.getElementById('editStudentBio').value = student.bio || '';
-
-            const imageSrc = student.profileImage
-                ? (student.profileImage.startsWith('http')
-                    ? student.profileImage
-                    : `${this.api.baseURL.replace('/api', '')}/${student.profileImage}`)
-                : 'https://via.placeholder.com/80';
-
-            document.getElementById('editStudentImage').src = imageSrc;
-
-            // Show modal
-            document.getElementById('studentEditModal').classList.add('show');
-
-        } catch (error) {
-            console.error('❌ Error loading student for edit:', error);
-            this.showNotification('Failed to load student details', 'error');
-        }
-    }
-
-    async handleStudentEditSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const studentId = formData.get('studentId');
-        const updateData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            dateOfBirth: formData.get('dateOfBirth'),
-            bio: formData.get('bio')
-        };
-
-        try {
-            this.showNotification('Updating student...', 'info');
-            
-            await this.api.updateStudentProfile(studentId, updateData);
-            
-            this.showNotification('Student updated successfully!', 'success');
-            
-            // Close modal and refresh
-            this.closeModals();
-            await this.loadStudents();
-            
-        } catch (error) {
-            console.error('❌ Error updating student:', error);
-            this.showNotification(`Failed to update student: ${error.message}`, 'error');
-        }
-    }
-
-    async handleStudentImageUpload(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const studentId = document.getElementById('editStudentId').value;
-        if (!studentId) return;
-
-        try {
-            const formData = new FormData();
-            formData.append('profileImage', file);
-
-            this.showNotification('Uploading image...', 'info');
-            
-            const response = await this.api.uploadStudentProfileImage(studentId, formData);
-            
-            // Update the image in the modal
-            document.getElementById('editStudentImage').src = 
-                `${this.api.baseURL.replace('/api', '')}/${response.profileImage}`;
-            
-            this.showNotification('Profile image updated successfully!', 'success');
-            
-        } catch (error) {
-            console.error('❌ Error uploading student image:', error);
-            this.showNotification(`Failed to upload image: ${error.message}`, 'error');
-        }
-
-        // Clear the input
-        e.target.value = '';
-    }
-
-    async deleteStudent(studentId) {
-        if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
-            return;
-        }
-
-        try {
-            this.showNotification('Deleting student...', 'info');
-            
-            await this.api.deleteStudent(studentId);
-            
-            this.showNotification('Student deleted successfully!', 'success');
-            
-            // Refresh students list
-            await this.loadStudents();
-            
-        } catch (error) {
-            console.error('❌ Error deleting student:', error);
-            this.showNotification(`Failed to delete student: ${error.message}`, 'error');
-        }
-    }
-
-    async loadResources(type) {
-        const contentArea = document.getElementById('contentArea');
-        const typeTitle = type.charAt(0).toUpperCase() + type.slice(1) + 's';
-        
-        contentArea.innerHTML = `
-            <div class="loading-state">
-                <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <p>Loading ${typeTitle.toLowerCase()}...</p>
-            </div>
-        `;
-
-        try {
-            const resources = await this.api.getResources(type);
-            
-            let resourcesHtml = '';
-            
-            if (resources.length === 0) {
-                resourcesHtml = `
-                    <div class="empty-state">
-                        <i class="fas fa-book"></i>
-                        <h3>No ${typeTitle} Available</h3>
-                        <p>There are no ${typeTitle.toLowerCase()} available at the moment.</p>
-                        ${this.currentUser.role === 'teacher' ? `
-                            <button class="btn btn--primary" onclick="app.openResourceModal('${type}')">
-                                <i class="fas fa-plus"></i> Add ${type.charAt(0).toUpperCase() + type.slice(1)}
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-            } else {
-                const resourceCards = resources.map(resource => `
-                    <div class="resource-card">
-                        <div class="resource-header">
-                            <h3>${resource.title}</h3>
-                            <div class="resource-actions">
-                                <button class="btn-icon btn--secondary" onclick="app.downloadResource('${resource._id}')" title="Download">
-                                    <i class="fas fa-download"></i>
+            const studentsHtml = studentsWithFees.map(student => {
+                const latestFee = student.fees[0];
+                const statusClass = latestFee ? `status--${latestFee.status}` : 'status--unknown';
+                
+                return `
+                    <div class="student-card" data-id="${student._id}">
+                        <div class="student-header">
+                            <img src="${student.profileImage || 'https://via.placeholder.com/60'}" alt="${student.name}" />
+                            <div class="student-info">
+                                <h3>${student.name}</h3>
+                                <p>${student.email}</p>
+                            </div>
+                            <div class="student-actions">
+                                <button class="btn btn--primary btn-icon" onclick="app.openFeePaymentModal('${student._id}', '${student.name}')" title="Update Fee">
+                                    <i class="fas fa-money-bill"></i>
                                 </button>
-                                ${this.currentUser.role === 'teacher' ? `
-                                    <button class="btn-icon btn--danger" onclick="app.deleteResource('${resource._id}')" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                ` : ''}
                             </div>
                         </div>
-                        
-                        ${resource.description ? `<div class="resource-description">${resource.description}</div>` : '<div class="resource-description">No description available</div>'}
-                        
-                        <div class="resource-meta">
-                            <span><i class="fas fa-file"></i> ${resource.fileName}</span>
-                            <span><i class="fas fa-weight"></i> ${this.formatFileSize(resource.fileSize)}</span>
-                            <span><i class="fas fa-user"></i> ${resource.uploadedBy?.name || 'Unknown'}</span>
-                            <span><i class="fas fa-calendar"></i> ${new Date(resource.createdAt).toLocaleDateString()}</span>
+                        <div class="student-meta">
+                            <span class="status ${statusClass}">
+                                <i class="fas fa-circle"></i>
+                                ${latestFee ? latestFee.status.toUpperCase() : 'NO RECORDS'}
+                            </span>
+                            ${latestFee ? `<span><i class="fas fa-calendar"></i> ${latestFee.month} ${latestFee.year}</span>` : ''}
                         </div>
-                        
-                        <div class="resource-footer">
-                            <button class="btn btn--primary" onclick="app.downloadResource('${resource._id}')">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-
-                resourcesHtml = `
-                    <div class="resources-grid">
-                        ${resourceCards}
                     </div>
                 `;
-            }
+            }).join('');
 
             contentArea.innerHTML = `
                 <div class="section-header">
-                    <h1>${typeTitle}</h1>
-                    ${this.currentUser.role === 'teacher' ? `
-                        <button class="btn btn--primary" onclick="app.openResourceModal('${type}')">
-                            <i class="fas fa-plus"></i> Add ${type.charAt(0).toUpperCase() + type.slice(1)}
-                        </button>
-                    ` : ''}
+                    <h1><i class="fas fa-money-check-alt"></i> Fee Management</h1>
                 </div>
                 
-                ${resourcesHtml}
+                <div class="fee-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon notes-icon"><i class="fas fa-check-circle"></i></div>
+                        <div class="stat-content">
+                            <h3>${feeStats.paidStudents}</h3>
+                            <p>Students with Paid Fees</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon questions-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-content">
+                            <h3>${feeStats.pendingStudents}</h3>
+                            <p>Students with Pending Fees</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon books-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-content">
+                            <h3>${feeStats.overdueStudents}</h3>
+                            <p>Students with Overdue Fees</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon students-icon"><i class="fas fa-rupee-sign"></i></div>
+                        <div class="stat-content">
+                            <h3>₹${feeStats.totalAmount}</h3>
+                            <p>Total Fee Collection</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="students-grid">
+                    ${studentsHtml}
+                </div>
             `;
 
         } catch (error) {
-            console.error('❌ Error loading resources:', error);
-            this.showError('Error loading resources', error.message);
+            console.error('❌ Error loading fees:', error);
+            contentArea.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h2>Error Loading Fee Data</h2>
+                    <p>Unable to load fee data. Please try again.</p>
+                </div>
+            `;
         }
     }
 
-    async downloadResource(id) {
-        try {
-            this.showNotification('Starting download...', 'info');
-            await this.api.downloadResource(id);
-            this.showNotification('File downloaded successfully!', 'success');
-        } catch (error) {
-            console.error('❌ Error downloading resource:', error);
-            this.showNotification(`Download failed: ${error.message}`, 'error');
-        }
-    }
-
-    async loadSchedules() {
+    async loadResults() {
         const contentArea = document.getElementById('contentArea');
         
-        contentArea.innerHTML = `
-            <div class="loading-state">
-                <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <p>Loading schedules...</p>
-            </div>
-        `;
-
         try {
-            const schedules = await this.api.getSchedules();
+            const results = await this.api.getResults();
+            const leaderboard = this.currentUser.role === 'teacher' ? await this.api.getLeaderboard() : null;
             
-            let schedulesHtml = '';
-            
-            if (schedules.length === 0) {
-                schedulesHtml = `
+            let resultsHtml = '';
+            if (results.length === 0) {
+                resultsHtml = `
                     <div class="empty-state">
-                        <i class="fas fa-calendar-alt"></i>
-                        <h3>No Scheduled Classes</h3>
-                        <p>There are no scheduled classes at the moment.</p>
+                        <i class="fas fa-trophy"></i>
+                        <h3>No Results</h3>
+                        <p>No exam results available yet.</p>
                     </div>
                 `;
             } else {
-                const scheduleCards = schedules.map(schedule => `
-                    <div class="schedule-card">
-                        <div class="schedule-header">
-                            <h3>${schedule.title}</h3>
-                            ${this.currentUser.role === 'teacher' ? `
-                                <button class="btn-icon btn--danger" onclick="app.deleteSchedule('${schedule._id}')" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            ` : ''}
-                        </div>
-                        
-                        ${schedule.description ? `<div class="schedule-description">${schedule.description}</div>` : '<div class="schedule-description">No description available</div>'}
-                        
-                        <div class="schedule-meta">
-                            <span><i class="fas fa-calendar"></i> ${new Date(schedule.date).toLocaleDateString()}</span>
-                            <span><i class="fas fa-clock"></i> ${schedule.time}</span>
-                        </div>
-                        
-                        <div class="schedule-footer">
-                            ${schedule.meetingLink ? `<a href="${schedule.meetingLink}" class="btn btn--primary" target="_blank"><i class="fas fa-video"></i> Join Meeting</a>` : ''}
-                            ${schedule.password ? `<div class="meeting-password"><i class="fas fa-key"></i> Password: ${schedule.password}</div>` : ''}
-                        </div>
+                resultsHtml = `
+                    <div class="results-grid">
+                        ${results.map(result => this.renderResultCard(result)).join('')}
                     </div>
-                `).join('');
+                `;
+            }
 
-                schedulesHtml = `
-                    <div class="schedules-grid">
-                        ${scheduleCards}
+            let leaderboardHtml = '';
+            if (this.currentUser.role === 'teacher' && leaderboard && leaderboard.length > 0) {
+                leaderboardHtml = `
+                    <div class="leaderboard-section">
+                        <h2><i class="fas fa-trophy"></i> Student Leaderboard</h2>
+                        <div class="leaderboard-grid">
+                            ${leaderboard.slice(0, 10).map(student => this.renderLeaderboardCard(student)).join('')}
+                        </div>
                     </div>
                 `;
             }
 
             contentArea.innerHTML = `
                 <div class="section-header">
-                    <h1>Class Schedule</h1>
+                    <h1><i class="fas fa-trophy"></i> Results</h1>
                     ${this.currentUser.role === 'teacher' ? `
-                        <button class="btn btn--primary" onclick="app.showScheduleForm()">
-                            <i class="fas fa-plus"></i> Add Schedule
+                        <button class="btn btn--primary" onclick="app.openResultModal()">
+                            <i class="fas fa-plus"></i> Add Result
                         </button>
                     ` : ''}
                 </div>
                 
-                ${this.currentUser.role === 'teacher' ? `
-                    <div class="schedule-form-section" id="scheduleFormSection" style="display: none;">
-                        <h2>Add New Schedule</h2>
-                        <form id="scheduleForm" class="schedule-form">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label class="form-label">Title</label>
-                                    <input type="text" name="title" class="form-control" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Date</label>
-                                    <input type="date" name="date" class="form-control" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Time</label>
-                                    <input type="time" name="time" class="form-control" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Meeting Link</label>
-                                    <input type="url" name="meetingLink" class="form-control" placeholder="https://zoom.us/j/...">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Description</label>
-                                <textarea name="description" class="form-control" rows="3"></textarea>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Meeting Password (Optional)</label>
-                                <input type="text" name="password" class="form-control">
-                            </div>
-                            
-                            <div class="form-group">
-                                <button type="submit" class="btn btn--primary">
-                                    <i class="fas fa-plus"></i> Add Schedule
-                                </button>
-                                <button type="button" class="btn btn--secondary" onclick="document.getElementById('scheduleFormSection').style.display='none'">
-                                    Cancel
-                                </button>
-                            </div>
-                        </form>
+                ${resultsHtml}
+                ${leaderboardHtml}
+            `;
+
+        } catch (error) {
+            console.error('❌ Error loading results:', error);
+            contentArea.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i><h2>Error Loading Results</h2><p>Unable to load results. Please try again.</p></div>`;
+        }
+    }
+
+    renderResultCard(result) {
+        const examDate = new Date(result.examDate).toLocaleDateString();
+        const gradeClass = result.percentage >= 90 ? 'grade-a' : result.percentage >= 70 ? 'grade-b' : result.percentage >= 50 ? 'grade-c' : 'grade-f';
+        
+        return `
+            <div class="result-card" data-id="${result._id}">
+                <div class="result-header">
+                    <h3>${result.examName}</h3>
+                    <span class="result-grade ${gradeClass}">${result.grade}</span>
+                </div>
+                
+                <div class="result-details">
+                    <div class="result-info">
+                        <span><i class="fas fa-book"></i> ${result.subject}</span>
+                        <span><i class="fas fa-graduation-cap"></i> ${result.class}</span>
+                        <span><i class="fas fa-calendar"></i> ${examDate}</span>
+                    </div>
+                    
+                    <div class="result-score">
+                        <div class="score-display">
+                            <span class="marks">${result.marksObtained}/${result.totalMarks}</span>
+                            <span class="percentage">${result.percentage}%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${result.remarks ? `
+                    <div class="result-remarks">
+                        <i class="fas fa-comment"></i>
+                        ${result.remarks}
                     </div>
                 ` : ''}
                 
-                ${schedulesHtml}
-            `;
-
-            // Bind schedule form events if teacher
-            if (this.currentUser.role === 'teacher') {
-                const scheduleForm = document.getElementById('scheduleForm');
-                if (scheduleForm) {
-                    scheduleForm.addEventListener('submit', (e) => this.handleScheduleSubmit(e));
-                }
-            }
-
-        } catch (error) {
-            console.error('❌ Error loading schedules:', error);
-            this.showError('Error loading schedules', error.message);
-        }
-    }
-
-    showScheduleForm() {
-        const scheduleFormSection = document.getElementById('scheduleFormSection');
-        if (scheduleFormSection) {
-            scheduleFormSection.style.display = 'block';
-            scheduleFormSection.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
-
-    async handleScheduleSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const scheduleData = Object.fromEntries(formData.entries());
-
-        try {
-            this.showNotification('Adding schedule...', 'info');
-            
-            await this.api.createSchedule(scheduleData);
-            
-            this.showNotification('Schedule added successfully!', 'success');
-            
-            // Hide form and refresh schedules
-            document.getElementById('scheduleFormSection').style.display = 'none';
-            e.target.reset();
-            await this.loadSchedules();
-            
-        } catch (error) {
-            console.error('❌ Error adding schedule:', error);
-            this.showNotification(`Failed to add schedule: ${error.message}`, 'error');
-        }
-    }
-
-    async deleteSchedule(scheduleId) {
-        if (!confirm('Are you sure you want to delete this schedule?')) {
-            return;
-        }
-
-        try {
-            this.showNotification('Deleting schedule...', 'info');
-            
-            await this.api.deleteSchedule(scheduleId);
-            
-            this.showNotification('Schedule deleted successfully!', 'success');
-            
-            // Refresh schedules
-            await this.loadSchedules();
-            
-        } catch (error) {
-            console.error('❌ Error deleting schedule:', error);
-            this.showNotification(`Failed to delete schedule: ${error.message}`, 'error');
-        }
-    }
-
-    loadSettings() {
-        const contentArea = document.getElementById('contentArea');
-        contentArea.innerHTML = `
-            <div class="section-header">
-                <h1>Settings</h1>
+                ${this.currentUser.role === 'teacher' ? `
+                    <div class="result-actions">
+                        <button class="btn btn--secondary btn-icon" onclick="app.editResult('${result._id}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn--danger btn-icon" onclick="app.deleteResult('${result._id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                ` : ''}
             </div>
-            
-            <div class="card">
-                <div class="card__body">
-                    <h3>Settings panel coming soon!</h3>
-                    <p>This section will contain application settings and preferences.</p>
+        `;
+    }
+
+    renderLeaderboardCard(student) {
+        const rankClass = student.rank <= 3 ? `rank-${student.rank}` : 'rank-other';
+        
+        return `
+            <div class="leaderboard-card ${rankClass}" data-rank="${student.rank}">
+                <div class="leaderboard-rank">
+                    <span class="rank-number">${student.rank}</span>
+                </div>
+                
+                <div class="leaderboard-student">
+                    <img src="${student.profileImage || 'https://via.placeholder.com/50'}" alt="${student.name}" />
+                    <div class="student-details">
+                        <h4>${student.name}</h4>
+                        <p>${student.email}</p>
+                    </div>
+                </div>
+                
+                <div class="leaderboard-stats">
+                    <div class="stat">
+                        <span class="stat-value">${student.averagePercentage}%</span>
+                        <span class="stat-label">Average</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${student.totalExams}</span>
+                        <span class="stat-label">Exams</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${student.highestScore}%</span>
+                        <span class="stat-label">Best</span>
+                    </div>
                 </div>
             </div>
         `;
     }
 
+    async loadProfile() {
+        const contentArea = document.getElementById('contentArea');
+        
+        contentArea.innerHTML = `
+            <div class="section-header">
+                <h1><i class="fas fa-user"></i> Profile</h1>
+            </div>
+            <div class="profile-content">
+                <p>Manage your personal information and settings</p>
+            </div>
+        `;
+    }
+
+    async loadSettings() {
+        const contentArea = document.getElementById('contentArea');
+        contentArea.innerHTML = `
+            <div class="section-header">
+                <h1><i class="fas fa-cog"></i> Settings</h1>
+            </div>
+            <div class="settings-content">
+                <p>This section will contain application settings and preferences.</p>
+            </div>
+        `;
+    }
+
+    // Helper methods
     openResourceModal(type) {
-        document.getElementById('resourceType').value = type;
-        document.getElementById('resourceModalTitle').textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-        document.getElementById('resourceModal').classList.add('show');
+        const modal = document.getElementById('resourceModal');
+        const modalTitle = document.getElementById('resourceModalTitle');
+        const resourceType = document.getElementById('resourceType');
+        
+        modalTitle.textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        resourceType.value = type;
+        modal.classList.add('show');
     }
 
     async handleResourceSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
+        const form = e.target;
+        const formData = new FormData(form);
 
         try {
-            this.showNotification('Uploading resource...', 'info');
-            
             await this.api.createResource(formData);
-            
             this.showNotification('Resource uploaded successfully!', 'success');
+            this.closeAllModals();
             
-            // Close modal and refresh current section
-            this.closeModals();
-            e.target.reset();
-            
-            const currentType = this.currentSection;
-            if (['notes', 'questions', 'books'].includes(currentType)) {
-                await this.loadResources(currentType.slice(0, -1)); // Remove 's' from plural
+            // Reload current section if it's a resource section
+            const resourceType = formData.get('type');
+            if (this.currentSection === `${resourceType}s`) {
+                this.loadResources(resourceType);
             }
-            
         } catch (error) {
             console.error('❌ Error uploading resource:', error);
-            this.showNotification(`Failed to upload resource: ${error.message}`, 'error');
+            this.showNotification('Failed to upload resource: ' + error.message, 'error');
+        }
+    }
+
+    async downloadResource(resourceId) {
+        try {
+            this.showNotification('Starting download...', 'info');
+            await this.api.downloadResource(resourceId);
+            this.showNotification('Download completed successfully!', 'success');
+        } catch (error) {
+            console.error('❌ Download failed:', error);
+            this.showNotification('Download failed: ' + error.message, 'error');
         }
     }
 
@@ -1965,600 +1737,500 @@ class EducationApp {
         }
 
         try {
-            this.showNotification('Deleting resource...', 'info');
-            
             await this.api.deleteResource(resourceId);
-            
             this.showNotification('Resource deleted successfully!', 'success');
             
-            // Refresh current section
-            const currentType = this.currentSection;
-            if (['notes', 'questions', 'books'].includes(currentType)) {
-                await this.loadResources(currentType.slice(0, -1)); // Remove 's' from plural
+            // Reload current section
+            if (this.currentSection === 'notes') {
+                this.loadResources('note');
+            } else if (this.currentSection === 'questions') {
+                this.loadResources('question');
+            } else if (this.currentSection === 'books') {
+                this.loadResources('book');
             }
-            
         } catch (error) {
             console.error('❌ Error deleting resource:', error);
-            this.showNotification(`Failed to delete resource: ${error.message}`, 'error');
+            this.showNotification('Failed to delete resource: ' + error.message, 'error');
         }
     }
 
-    async handleProfileSubmit(e) {
+    openFeePaymentModal(studentId, studentName) {
+        const modal = document.getElementById('feePaymentModal');
+        const form = document.getElementById('feePaymentForm');
+        
+        form.reset();
+        document.getElementById('feeStudentId').value = studentId;
+        document.getElementById('feeStudentName').value = studentName;
+        document.getElementById('feeYear').value = new Date().getFullYear();
+        
+        modal.classList.add('show');
+    }
+
+    async handleFeePaymentSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const profileData = Object.fromEntries(formData.entries());
-
-        try {
-            this.showNotification('Updating profile...', 'info');
-            
-            const updatedUser = await this.api.updateUserProfile(profileData);
-            this.currentUser = updatedUser;
-            
-            this.showNotification('Profile updated successfully!', 'success');
-            
-            // Update user display
-            this.updateUserProfile();
-            
-        } catch (error) {
-            console.error('❌ Error updating profile:', error);
-            this.showNotification(`Failed to update profile: ${error.message}`, 'error');
-        }
-    }
-
-    async handleProfileImageUpload(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        try {
-            const formData = new FormData();
-            formData.append('profileImage', file);
-
-            this.showNotification('Uploading image...', 'info');
-            
-            // Add loading state to image
-            const profileImage = document.getElementById('profileImage');
-            if (profileImage) {
-                profileImage.classList.add('uploading');
-            }
-
-            const response = await this.api.uploadProfileImage(formData);
-            this.currentUser = response.user;
-            
-            // Update profile image display
-            const newImageSrc = `${this.api.baseURL.replace('/api', '')}/${response.profileImage}`;
-            if (profileImage) {
-                profileImage.src = newImageSrc;
-                profileImage.classList.remove('uploading');
-            }
-
-            // Update user avatar in sidebar
-            this.updateUserProfile();
-            
-            this.showNotification('Profile image updated successfully!', 'success');
-            
-        } catch (error) {
-            console.error('❌ Error uploading profile image:', error);
-            this.showNotification(`Failed to upload image: ${error.message}`, 'error');
-            
-            // Remove loading state
-            const profileImage = document.getElementById('profileImage');
-            if (profileImage) {
-                profileImage.classList.remove('uploading');
-            }
-        }
-
-        // Clear the input
-        e.target.value = '';
-    }
-
-    async removeProfileImage() {
-        if (!confirm('Are you sure you want to remove your profile image?')) {
-            return;
-        }
-
-        try {
-            this.showNotification('Removing profile image...', 'info');
-            
-            // You might want to add an API endpoint for this
-            // For now, we'll just update with placeholder
-            const profileImage = document.getElementById('profileImage');
-            if (profileImage) {
-                profileImage.src = 'https://via.placeholder.com/200';
-            }
-
-            const userAvatar = document.getElementById('userAvatar');
-            if (userAvatar) {
-                userAvatar.src = 'https://via.placeholder.com/40';
-            }
-            
-            this.showNotification('Profile image removed successfully!', 'success');
-            
-        } catch (error) {
-            console.error('❌ Error removing profile image:', error);
-            this.showNotification(`Failed to remove image: ${error.message}`, 'error');
-        }
-    }
-
-    handleSearch(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        console.log('🔍 Searching for:', searchTerm);
+        const form = e.target;
+        const formData = new FormData(form);
         
-        // Implement search functionality based on current section
-        if (searchTerm.length > 2) {
-            this.performSearch(searchTerm);
-        }
-    }
+        const feeData = {
+            studentId: formData.get('studentId'),
+            month: formData.get('month'),
+            year: formData.get('year'),
+            amount: formData.get('amount'),
+            status: formData.get('status'),
+            paymentDate: formData.get('paymentDate'),
+            notes: formData.get('notes')
+        };
 
-    async performSearch(searchTerm) {
-        if (['notes', 'questions', 'books'].includes(this.currentSection)) {
-            const type = this.currentSection.slice(0, -1); // Remove 's' from plural
-            try {
-                const resources = await this.api.getResources(type, searchTerm);
-                this.displaySearchResults(resources, type);
-            } catch (error) {
-                console.error('❌ Search error:', error);
+        try {
+            await this.api.updateFeeStatus(feeData);
+            this.showNotification('Fee status updated successfully!', 'success');
+            this.closeAllModals();
+            if (this.currentSection === 'fees') {
+                this.loadFees();
             }
+        } catch (error) {
+            console.error('❌ Error updating fee status:', error);
+            this.showNotification('Failed to update fee status: ' + error.message, 'error');
         }
     }
 
-    displaySearchResults(resources, type) {
-        const contentArea = document.getElementById('contentArea');
-        const typeTitle = type.charAt(0).toUpperCase() + type.slice(1) + 's';
-        
-        if (resources.length === 0) {
-            contentArea.innerHTML = `
-                <div class="section-header">
-                    <h1>${typeTitle} - Search Results</h1>
-                </div>
-                
-                <div class="empty-state">
-                    <i class="fas fa-search"></i>
-                    <h3>No Results Found</h3>
-                    <p>No ${typeTitle.toLowerCase()} match your search criteria.</p>
-                </div>
-            `;
-        } else {
-            const resourceCards = resources.map(resource => `
-                <div class="resource-card">
-                    <div class="resource-header">
-                        <h3>${resource.title}</h3>
-                        <div class="resource-actions">
-                            <button class="btn-icon btn--secondary" onclick="app.downloadResource('${resource._id}')" title="Download">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            ${this.currentUser.role === 'teacher' ? `
-                                <button class="btn-icon btn--danger" onclick="app.deleteResource('${resource._id}')" title="Delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="resource-description">${resource.description || 'No description available'}</div>
-                    
-                    <div class="resource-meta">
-                        <span><i class="fas fa-file"></i> ${resource.fileName}</span>
-                        <span><i class="fas fa-weight"></i> ${this.formatFileSize(resource.fileSize)}</span>
-                        <span><i class="fas fa-user"></i> ${resource.uploadedBy?.name || 'Unknown'}</span>
-                        <span><i class="fas fa-calendar"></i> ${new Date(resource.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    
-                    <div class="resource-footer">
-                        <button class="btn btn--primary" onclick="app.downloadResource('${resource._id}')">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-
-            contentArea.innerHTML = `
-                <div class="section-header">
-                    <h1>${typeTitle} - Search Results</h1>
-                    <button class="btn btn--secondary" onclick="app.loadSection('${type}s')">
-                        <i class="fas fa-arrow-left"></i> Back to All ${typeTitle}
-                    </button>
-                </div>
-                
-                <div class="resources-grid">
-                    ${resourceCards}
-                </div>
-            `;
-        }
-    }
-
-    toggleMobileSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('open');
-    }
-
-    closeMobileSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.remove('open');
-    }
-
-    closeModals() {
-        document.querySelectorAll('.modal').forEach(modal => {
+    closeAllModals() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
             modal.classList.remove('show');
         });
     }
 
-    handleLogout() {
-        if (confirm('Are you sure you want to logout?')) {
-            this.api.clearAuthToken();
-            this.currentUser = null;
-            this.showLogin();
-            this.showNotification('Logged out successfully', 'info');
-        }
+    handleSearch(query) {
+        // Search functionality can be implemented here
+        console.log('Searching for:', query);
     }
+}
 
-    showLoading(button, show) {
-        if (show) {
-            button.classList.add('loading');
-            button.disabled = true;
-        } else {
-            button.classList.remove('loading');
-            button.disabled = false;
-        }
-    }
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 DOM loaded, initializing app...');
+    window.app = new EducationApp();
+    
+    // Add CSS animations for notifications
+    if (!document.getElementById('notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex: 1;
+            }
+            
+            .notification button {
+                background: none;
+                border: none;
+                color: var(--color-text-secondary);
+                cursor: pointer;
+                padding: 4px;
+                border-radius: 4px;
+                transition: all 0.2s;
+            }
+            
+            .notification button:hover {
+                background: rgba(0,0,0,0.1);
+            }
 
-    showError(title, message) {
-        const contentArea = document.getElementById('contentArea');
-        contentArea.innerHTML = `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h2>${title}</h2>
-                <p>${message}</p>
-            </div>
+            /* Fee Alert Styles */
+            .fee-alert {
+                display: flex;
+                align-items: center;
+                gap: var(--space-16);
+                padding: var(--space-20);
+                border-radius: var(--radius-lg);
+                margin-bottom: var(--space-24);
+                border-left: 4px solid;
+            }
+            
+            .fee-alert--success {
+                background: rgba(var(--color-success-rgb), 0.1);
+                border-left-color: var(--color-success);
+                color: var(--color-success);
+            }
+            
+            .fee-alert--warning {
+                background: rgba(var(--color-warning-rgb), 0.1);
+                border-left-color: var(--color-warning);
+                color: var(--color-warning);
+            }
+            
+            .fee-alert--danger {
+                background: rgba(var(--color-error-rgb), 0.1);
+                border-left-color: var(--color-error);
+                color: var(--color-error);
+            }
+            
+            .fee-alert i {
+                font-size: var(--font-size-2xl);
+                flex-shrink: 0;
+            }
+            
+            .fee-alert h3 {
+                margin: 0 0 var(--space-4) 0;
+                font-size: var(--font-size-lg);
+                font-weight: var(--font-weight-semibold);
+            }
+            
+            .fee-alert p {
+                margin: 0;
+                opacity: 0.8;
+            }
+
+            /* Fee Stats Grid */
+            .fee-stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: var(--space-16);
+                margin-bottom: var(--space-32);
+            }
+
+            /* Announcements Styles */
+            .announcements-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                gap: var(--space-16);
+            }
+            
+            .announcement-card {
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                border-radius: var(--radius-lg);
+                padding: var(--space-24);
+                transition: all var(--duration-fast);
+                position: relative;
+            }
+            
+            .announcement-card--urgent {
+                border-left: 4px solid var(--color-error);
+                background: rgba(var(--color-error-rgb), 0.05);
+            }
+            
+            .announcement-card:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
+            
+            .announcement-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: var(--space-12);
+            }
+            
+            .announcement-title h3 {
+                font-size: var(--font-size-lg);
+                font-weight: var(--font-weight-semibold);
+                color: var(--color-text);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: var(--space-8);
+            }
+            
+            .announcement-priority {
+                font-size: var(--font-size-xs);
+                padding: var(--space-2) var(--space-8);
+                border-radius: var(--radius-full);
+                font-weight: var(--font-weight-semibold);
+                text-transform: uppercase;
+            }
+            
+            .priority--high {
+                background: rgba(var(--color-error-rgb), 0.2);
+                color: var(--color-error);
+            }
+            
+            .priority--normal {
+                background: rgba(var(--color-info-rgb), 0.2);
+                color: var(--color-info);
+            }
+            
+            .priority--low {
+                background: rgba(var(--color-success-rgb), 0.2);
+                color: var(--color-success);
+            }
+            
+            .announcement-content {
+                margin-bottom: var(--space-16);
+                color: var(--color-text-secondary);
+                line-height: var(--line-height-normal);
+            }
+            
+            .announcement-meta {
+                display: flex;
+                gap: var(--space-16);
+                font-size: var(--font-size-sm);
+                color: var(--color-text-secondary);
+                flex-wrap: wrap;
+            }
+            
+            .announcement-meta span {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4);
+            }
+            
+            .announcement-actions {
+                display: flex;
+                gap: var(--space-4);
+            }
+            
+            /* Notice Board Styles */
+            .notices-container {
+                display: grid;
+                gap: var(--space-16);
+            }
+            
+            .notice-card {
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                border-radius: var(--radius-lg);
+                padding: var(--space-24);
+                transition: all var(--duration-fast);
+                position: relative;
+            }
+            
+            .notice-card--urgent {
+                border-left: 4px solid var(--color-error);
+                background: rgba(var(--color-error-rgb), 0.05);
+            }
+            
+            .notice-card--unread {
+                border-left: 4px solid var(--color-primary);
+                background: rgba(var(--color-primary-rgb), 0.05);
+            }
+            
+            .notice-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: var(--space-16);
+            }
+            
+            .notice-title {
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-8);
+            }
+            
+            .notice-title h3 {
+                font-size: var(--font-size-lg);
+                font-weight: var(--font-weight-semibold);
+                color: var(--color-text);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: var(--space-8);
+            }
+            
+            .new-badge {
+                background: var(--color-primary);
+                color: var(--color-btn-primary-text);
+                font-size: var(--font-size-xs);
+                padding: var(--space-2) var(--space-6);
+                border-radius: var(--radius-full);
+                font-weight: var(--font-weight-semibold);
+                animation: pulse 2s infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+            }
+            
+            .notice-date {
+                text-align: right;
+                color: var(--color-text-secondary);
+                font-size: var(--font-size-sm);
+            }
+            
+            .notice-content {
+                color: var(--color-text-secondary);
+                line-height: var(--line-height-normal);
+                margin-bottom: var(--space-16);
+            }
+            
+            .notice-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: var(--space-12);
+                border-top: 1px solid var(--color-border);
+                font-size: var(--font-size-sm);
+            }
+            
+            .notice-author {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4);
+                color: var(--color-text-secondary);
+            }
+            
+            .notice-status {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4);
+                font-weight: var(--font-weight-medium);
+            }
+            
+            .status--read {
+                color: var(--color-success);
+            }
+            
+            .status--unread {
+                color: var(--color-primary);
+            }
+            
+            .notice-stats {
+                display: flex;
+                gap: var(--space-16);
+                font-size: var(--font-size-sm);
+                color: var(--color-text-secondary);
+            }
+            
+            .notice-count {
+                display: flex;
+                align-items: center;
+                gap: var(--space-4);
+            }
+            
+            /* Notification Badge */
+            .notification-badge {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: var(--color-error);
+                color: var(--color-btn-primary-text);
+                border-radius: var(--radius-full);
+                font-size: var(--font-size-xs);
+                font-weight: var(--font-weight-bold);
+                padding: 2px 6px;
+                min-width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: bounce 2s infinite;
+            }
+            
+            @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                40% { transform: translateY(-3px); }
+                60% { transform: translateY(-2px); }
+            }
+
+            /* Results Styles */
+            .results-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: var(--space-16);
+                margin-bottom: var(--space-32);
+            }
+            
+            .result-card {
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                border-radius: var(--radius-lg);
+                padding: var(--space-24);
+                transition: all var(--duration-fast);
+                position: relative;
+            }
+            
+            .result-card:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
+            
+            .result-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: var(--space-16);
+            }
+            
+            .result-grade {
+                font-size: var(--font-size-xl);
+                font-weight: var(--font-weight-bold);
+                padding: var(--space-8) var(--space-12);
+                border-radius: var(--radius-base);
+            }
+            
+            .grade-a { background: var(--color-success); color: white; }
+            .grade-b { background: var(--color-primary); color: white; }
+            .grade-c { background: var(--color-warning); color: white; }
+            .grade-f { background: var(--color-error); color: white; }
+            
+            .leaderboard-section {
+                margin-top: var(--space-32);
+            }
+            
+            .leaderboard-grid {
+                display: grid;
+                gap: var(--space-12);
+            }
+            
+            .leaderboard-card {
+                display: flex;
+                align-items: center;
+                gap: var(--space-16);
+                background: var(--color-surface);
+                border: 1px solid var(--color-border);
+                border-radius: var(--radius-lg);
+                padding: var(--space-16);
+                transition: all var(--duration-fast);
+            }
+            
+            .leaderboard-card:hover {
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-md);
+            }
+            
+            .rank-1 { border-left: 4px solid #FFD700; }
+            .rank-2 { border-left: 4px solid #C0C0C0; }
+            .rank-3 { border-left: 4px solid #CD7F32; }
+            
+            @media (max-width: 768px) {
+                .announcements-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .notice-header {
+                    flex-direction: column;
+                    gap: var(--space-8);
+                }
+                
+                .notice-date {
+                    text-align: left;
+                }
+                
+                .notice-footer {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: var(--space-8);
+                }
+                
+                .results-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
         `;
+        document.head.appendChild(style);
     }
-
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-}
-
-// Initialize the app
-let app;
-document.addEventListener('DOMContentLoaded', () => {
-    app = new EducationApp();
 });
-
-// CSS styles for fee management components
-const feeStyles = `
-<style>
-/* Fee Management Styles */
-.fee-alert {
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    padding: var(--space-16);
-    border-radius: var(--radius-lg);
-    margin-bottom: var(--space-16);
-    border: 1px solid;
-}
-
-.fee-alert--success {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--color-success);
-    border-color: var(--color-success);
-}
-
-.fee-alert--warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--color-warning);
-    border-color: var(--color-warning);
-}
-
-.fee-alert--danger {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--color-error);
-    border-color: var(--color-error);
-}
-
-.fee-alert i {
-    font-size: 24px;
-    flex-shrink: 0;
-}
-
-.fee-status-section {
-    margin-top: var(--space-32);
-}
-
-.fee-status-section h2 {
-    margin-bottom: var(--space-16);
-    color: var(--color-text);
-}
-
-.fee-status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--space-16);
-}
-
-.fee-status-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-16);
-    text-align: center;
-}
-
-.fee-status-card.fee-status--paid {
-    border-left: 4px solid var(--color-success);
-    background: rgba(34, 197, 94, 0.05);
-}
-
-.fee-status-card.fee-status--pending {
-    border-left: 4px solid var(--color-warning);
-    background: rgba(245, 158, 11, 0.05);
-}
-
-.fee-status-card.fee-status--overdue {
-    border-left: 4px solid var(--color-error);
-    background: rgba(239, 68, 68, 0.05);
-}
-
-.fee-month {
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
-    margin-bottom: var(--space-4);
-}
-
-.fee-amount {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-primary);
-    margin-bottom: var(--space-8);
-}
-
-.fee-status-badge {
-    display: inline-block;
-    padding: var(--space-4) var(--space-8);
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    text-transform: uppercase;
-}
-
-.fee-badge--paid {
-    background: var(--color-success);
-    color: white;
-}
-
-.fee-badge--pending {
-    background: var(--color-warning);
-    color: white;
-}
-
-.fee-badge--overdue {
-    background: var(--color-error);
-    color: white;
-}
-
-.fee-date {
-    font-size: var(--font-size-xs);
-    color: var(--color-text-secondary);
-    margin-top: var(--space-4);
-}
-
-/* Teacher Fee Management */
-.fee-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-16);
-    margin-bottom: var(--space-24);
-}
-
-.fee-stat-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-20);
-    display: flex;
-    align-items: center;
-    gap: var(--space-16);
-}
-
-.fee-stat-card i {
-    font-size: var(--font-size-2xl);
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-lg);
-}
-
-.fee-stat--paid i {
-    background: var(--color-success);
-    color: white;
-}
-
-.fee-stat--pending i {
-    background: var(--color-warning);
-    color: white;
-}
-
-.fee-stat--overdue i {
-    background: var(--color-error);
-    color: white;
-}
-
-.fee-stat--total i {
-    background: var(--color-primary);
-    color: white;
-}
-
-.fee-stat-card h3 {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-text);
-    margin: 0;
-}
-
-.fee-stat-card p {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    margin: 0;
-}
-
-.fee-filters {
-    display: flex;
-    gap: var(--space-8);
-    margin-bottom: var(--space-24);
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    min-width: auto;
-    padding: var(--space-6) var(--space-12);
-}
-
-.filter-btn.active {
-    background: var(--color-primary);
-    color: var(--color-btn-primary-text);
-}
-
-.fee-students-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: var(--space-16);
-}
-
-.fee-student-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-20);
-}
-
-.fee-student-card .student-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    margin-bottom: var(--space-16);
-}
-
-.fee-student-card .student-header img {
-    width: 50px;
-    height: 50px;
-    border-radius: var(--radius-full);
-    object-fit: cover;
-}
-
-.fee-summary {
-    display: flex;
-    gap: var(--space-12);
-    margin-top: var(--space-4);
-}
-
-.fee-paid,
-.fee-pending {
-    font-size: var(--font-size-xs);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-sm);
-}
-
-.fee-paid {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--color-success);
-}
-
-.fee-pending {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--color-warning);
-}
-
-.recent-fees h4 {
-    color: var(--color-text);
-    margin-bottom: var(--space-8);
-    font-size: var(--font-size-sm);
-}
-
-.fee-records {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.fee-record {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    gap: var(--space-8);
-    align-items: center;
-    padding: var(--space-6);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border);
-    font-size: var(--font-size-xs);
-}
-
-.fee-record--paid {
-    background: rgba(34, 197, 94, 0.05);
-    border-color: var(--color-success);
-}
-
-.fee-record--pending {
-    background: rgba(245, 158, 11, 0.05);
-    border-color: var(--color-warning);
-}
-
-.fee-record--overdue {
-    background: rgba(239, 68, 68, 0.05);
-    border-color: var(--color-error);
-}
-
-.fee-record .fee-status {
-    padding: var(--space-1) var(--space-4);
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-medium);
-    text-transform: uppercase;
-}
-
-.fee-status--paid {
-    background: var(--color-success);
-    color: white;
-}
-
-.fee-status--pending {
-    background: var(--color-warning);
-    color: white;
-}
-
-.fee-status--overdue {
-    background: var(--color-error);
-    color: white;
-}
-
-/* Mobile responsive */
-@media (max-width: 768px) {
-    .fee-stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .fee-students-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .fee-filters {
-        flex-direction: column;
-    }
-    
-    .fee-record {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    
-    .fee-status-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-}
-</style>
-`;
-
-// Inject fee management styles
-document.head.insertAdjacentHTML('beforeend', feeStyles);

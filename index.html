@@ -3,17 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TMT Classes - Educational Platform</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="./logo.jpg" type="image/jpeg">
-    <link rel="shortcut icon" href="./logo.jpg" type="image/jpeg">
-    <link rel="apple-touch-icon" href="./logo.jpg">
-    
-    <!-- Font Awesome for icons -->
+    <title>TMT Classes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,120 +13,162 @@
         <div class="login-card">
             <div class="login-header">
                 <div class="logo-container">
-                    <img src="./logo.jpg" alt="TMT Classes" style="width: 60px; height: 60px; border-radius: 50%;">
-                    <div>
-                        <h1>TMT Classes</h1>
-                        <p>Mathematics Tutorial Platform</p>
+                    <div class="logo-icon">
+                        <i class="fas fa-graduation-cap"></i>
                     </div>
                 </div>
+                <h1>TMT Classes</h1>
+                <p>Mathematics Tutorial Platform</p>
             </div>
-            
+
             <form id="loginForm">
                 <div class="form-group">
-                    <label class="form-label">Email Address</label>
+                    <label for="loginEmail" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        Email Address
+                    </label>
                     <input type="email" id="loginEmail" class="form-control" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Password</label>
+                    <label for="loginPassword" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
                     <input type="password" id="loginPassword" class="form-control" required>
                 </div>
-                
-                <div id="loginError" class="error-message" style="display: none;"></div>
-                
+
+                <div class="error-message" id="loginError" style="display: none;"></div>
+
                 <button type="submit" id="loginBtn" class="btn btn--primary btn--full-width">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
                 </button>
             </form>
-        
+
+            <div class="demo-credentials">
+                <h4><i class="fas fa-info-circle"></i> Demo Credentials</h4>
+                <div class="credential-row">
+                    <strong>Teacher:</strong> <code>teachshashi@tmt.com</code> / <code>shashi12@tmt</code>
+                </div>
+                <div class="credential-row">
+                    <strong>Student:</strong> <code>student1@math.com</code> / <code>studentpass1</code>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Main Application -->
     <div id="mainApp" class="app-container hidden">
         <!-- Sidebar -->
-        <nav id="sidebar" class="sidebar">
+        <aside id="sidebar" class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="./logo.jpg" alt="TMT" style="width: 32px; height: 32px; border-radius: 50%;">
+                    <i class="fas fa-graduation-cap"></i>
                     <span>TMT Classes</span>
                 </div>
+                <button id="sidebarToggle" class="sidebar-toggle">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            
+
             <div class="sidebar-user">
-                <img id="userAvatar" src="https://via.placeholder.com/40" alt="User" class="user-avatar">
+                <img id="userAvatar" src="https://via.placeholder.com/40" alt="User Avatar" class="user-avatar">
                 <div class="user-details">
                     <div id="userName" class="user-name">Loading...</div>
                     <div id="userInfo" class="user-role">Loading...</div>
                 </div>
             </div>
-            
-            <ul class="sidebar-menu">
-                <li>
-                    <a href="#" class="sidebar-item active" data-section="dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-item" data-section="notes">
-                        <i class="fas fa-sticky-note"></i>
-                        <span>Notes</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-item" data-section="questions">
-                        <i class="fas fa-question-circle"></i>
-                        <span>Questions</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-item" data-section="books">
-                        <i class="fas fa-book"></i>
-                        <span>Books</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-item" data-section="schedule">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Schedule</span>
-                    </a>
-                </li>
-                <li class="teacher-only">
-                    <a href="#" class="sidebar-item" data-section="students">
-                        <i class="fas fa-users"></i>
-                        <span>Students</span>
-                    </a>
-                </li>
-                <li class="teacher-only">
-                    <a href="#" class="sidebar-item" data-section="fees">
-                        <i class="fas fa-money-bill-wave"></i>
-                        <span>Fee Management</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-item" data-section="profile">
-                        <i class="fas fa-user"></i>
-                        <span>Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" class="sidebar-item" data-section="settings">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-            
+
+            <nav class="sidebar-menu">
+                <ul>
+                    <li>
+                        <a href="#" class="sidebar-item active" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item" data-section="notes">
+                            <i class="fas fa-sticky-note"></i>
+                            <span>Notes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item" data-section="questions">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Questions</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item" data-section="books">
+                            <i class="fas fa-book"></i>
+                            <span>Books</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item" data-section="schedule">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Schedule</span>
+                        </a>
+                    </li>
+                    <li class="teacher-only">
+                        <a href="#" class="sidebar-item" data-section="students">
+                            <i class="fas fa-users"></i>
+                            <span>Students</span>
+                        </a>
+                    </li>
+                    <li class="teacher-only">
+                        <a href="#" class="sidebar-item" data-section="fees">
+                            <i class="fas fa-money-check-alt"></i>
+                            <span>Fee Management</span>
+                        </a>
+                    </li>
+                    <li class="teacher-only">
+                        <a href="#" class="sidebar-item" data-section="results">
+                            <i class="fas fa-trophy"></i>
+                            <span>Results</span>
+                        </a>
+                    </li>
+                    <!-- NEW: Teacher Announcements Section -->
+                    <li class="teacher-only">
+                        <a href="#" class="sidebar-item" data-section="announcements">
+                            <i class="fas fa-bullhorn"></i>
+                            <span>Announcements</span>
+                        </a>
+                    </li>
+                    <!-- NEW: Student Notice Board Section -->
+                    <li class="student-only" style="position: relative;">
+                        <a href="#" class="sidebar-item" data-section="notices">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Notice Board</span>
+                            <!-- Notification badge will be added here dynamically -->
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item" data-section="profile">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="sidebar-item" data-section="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
             <div class="sidebar-footer">
                 <button id="logoutBtn" class="btn btn--secondary btn--full-width">
                     <i class="fas fa-sign-out-alt"></i>
                     Logout
                 </button>
             </div>
-        </nav>
+        </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="main-content">
             <!-- Header -->
             <header class="content-header">
@@ -143,23 +176,22 @@
                     <button id="mobileSidebarToggle" class="mobile-sidebar-toggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <h1 id="pageTitle">Dashboard</h1>
+                    <h1 id="pageTitle">Loading...</h1>
                 </div>
-                
+
                 <div class="header-right">
                     <div class="search-container">
                         <input type="text" id="searchInput" class="search-input" placeholder="Search...">
                         <i class="fas fa-search search-icon"></i>
                     </div>
-                    <button id="themeToggle" class="theme-toggle">
+                    <button id="themeToggle" class="theme-toggle" title="Toggle Theme">
                         <i class="fas fa-moon"></i>
                     </button>
                 </div>
             </header>
-            
+
             <!-- Content Area -->
             <div id="contentArea" class="content-area">
-                <!-- Content will be loaded here dynamically -->
                 <div class="loading-state">
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
@@ -170,7 +202,14 @@
         </main>
     </div>
 
-    <!-- Resource Upload Modal -->
+    <!-- Floating Theme Toggle -->
+    <button id="floatingThemeToggle" class="floating-theme-toggle" title="Toggle Theme">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Modals -->
+
+    <!-- Add Resource Modal -->
     <div id="resourceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -179,38 +218,89 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <form id="resourceForm" class="modal-form">
                 <input type="hidden" id="resourceType" name="type">
                 
                 <div class="form-group">
-                    <label class="form-label">Title</label>
-                    <input type="text" name="title" class="form-control" required>
+                    <label for="resourceTitle" class="form-label">Title</label>
+                    <input type="text" id="resourceTitle" name="title" class="form-control" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Description</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
+                    <label for="resourceDescription" class="form-label">Description</label>
+                    <textarea id="resourceDescription" name="description" class="form-control" rows="3"></textarea>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">File</label>
-                    <input type="file" name="file" class="form-control file-input" required>
-                    <small class="file-input-help">Max file size: 50MB. Supported formats: PDF, DOC, DOCX, TXT, ZIP, RAR, Images</small>
+                    <label for="resourceFile" class="form-label">File</label>
+                    <input type="file" id="resourceFile" name="file" class="form-control file-input" required>
+                    <div class="file-input-help">Max file size: 50MB. Supported formats: PDF, DOC, DOCX, TXT, ZIP, RAR, Images</div>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn--secondary close-modal">Cancel</button>
                     <button type="submit" class="btn btn--primary">
-                        <i class="fas fa-upload"></i> Upload
+                        <i class="fas fa-upload"></i>
+                        Upload
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Student Edit Modal -->
-    <div id="studentEditModal" class="modal">
+    <!-- NEW: Add Announcement Modal -->
+    <div id="announcementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="announcementModalTitle">New Announcement</h2>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="announcementForm" class="modal-form">
+                <input type="hidden" id="announcementId" name="announcementId">
+                
+                <div class="form-group">
+                    <label for="announcementTitle" class="form-label">
+                        <i class="fas fa-bullhorn"></i>
+                        Announcement Title
+                    </label>
+                    <input type="text" id="announcementTitle" name="title" class="form-control" required placeholder="Enter announcement title">
+                </div>
+
+                <div class="form-group">
+                    <label for="announcementPriority" class="form-label">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Priority
+                    </label>
+                    <select id="announcementPriority" name="priority" class="form-control">
+                        <option value="normal">Normal</option>
+                        <option value="high">High (Urgent)</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="announcementContent" class="form-label">
+                        <i class="fas fa-edit"></i>
+                        Content
+                    </label>
+                    <textarea id="announcementContent" name="content" class="form-control" rows="5" required placeholder="Write your announcement message here..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn btn--primary">
+                        <i class="fas fa-bullhorn"></i>
+                        <span id="announcementSubmitText">Create Announcement</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Student Profile Modal -->
+    <div id="editStudentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit Student Profile</h2>
@@ -218,56 +308,46 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <form id="studentEditForm" class="modal-form">
                 <input type="hidden" id="editStudentId" name="studentId">
                 
-                <div class="form-group text-center">
-                    <div class="profile-image-container">
-                        <img id="editStudentImage" src="https://via.placeholder.com/80" alt="Student Photo" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-border);">
-                        <div class="image-overlay" onclick="document.getElementById('editStudentImageInput').click()">
-                            <i class="fas fa-camera"></i>
-                        </div>
-                        <input type="file" id="editStudentImageInput" accept="image/*" style="display: none;">
-                    </div>
-                </div>
-                
                 <div class="form-group">
-                    <label class="form-label">Full Name</label>
+                    <label for="editStudentName" class="form-label">Full Name</label>
                     <input type="text" id="editStudentName" name="name" class="form-control" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Email Address</label>
+                    <label for="editStudentEmail" class="form-label">Email Address</label>
                     <input type="email" id="editStudentEmail" name="email" class="form-control" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Phone Number</label>
+                    <label for="editStudentPhone" class="form-label">Phone Number</label>
                     <input type="tel" id="editStudentPhone" name="phone" class="form-control">
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Date of Birth</label>
+                    <label for="editStudentDob" class="form-label">Date of Birth</label>
                     <input type="date" id="editStudentDob" name="dateOfBirth" class="form-control">
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Bio</label>
+                    <label for="editStudentBio" class="form-label">Bio</label>
                     <textarea id="editStudentBio" name="bio" class="form-control" rows="3"></textarea>
                 </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn--secondary close-modal">Cancel</button>
                     <button type="submit" class="btn btn--primary">
-                        <i class="fas fa-save"></i> Save Changes
+                        <i class="fas fa-save"></i>
+                        Save Changes
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Fee Payment Modal -->
+    <!-- Update Fee Status Modal -->
     <div id="feePaymentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -276,301 +356,173 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
             <form id="feePaymentForm" class="modal-form">
-                <input type="hidden" id="paymentStudentId" name="studentId">
+                <input type="hidden" id="feeStudentId" name="studentId">
                 
                 <div class="form-group">
-                    <label class="form-label">Student Name</label>
-                    <input type="text" id="paymentStudentName" class="form-control" disabled>
+                    <label for="feeStudentName" class="form-label">Student Name</label>
+                    <input type="text" id="feeStudentName" class="form-control" readonly>
                 </div>
-                
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="feeMonth" class="form-label">Month</label>
+                        <select id="feeMonth" name="month" class="form-control" required>
+                            <option value="">Select Month</option>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="feeYear" class="form-label">Year</label>
+                        <input type="number" id="feeYear" name="year" class="form-control" min="2020" max="2030" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="feeAmount" class="form-label">Amount (₹)</label>
+                        <input type="number" id="feeAmount" name="amount" class="form-control" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="feeStatus" class="form-label">Status</label>
+                        <select id="feeStatus" name="status" class="form-control" required>
+                            <option value="paid">Paid</option>
+                            <option value="pending">Pending</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="form-group">
-                    <label class="form-label">Month</label>
-                    <select name="month" id="paymentMonth" class="form-control" required>
-                        <option value="">Select Month</option>
-                        <option value="January">January</option>
-                        <option value="February">February</option>
-                        <option value="March">March</option>
-                        <option value="April">April</option>
-                        <option value="May">May</option>
-                        <option value="June">June</option>
-                        <option value="July">July</option>
-                        <option value="August">August</option>
-                        <option value="September">September</option>
-                        <option value="October">October</option>
-                        <option value="November">November</option>
-                        <option value="December">December</option>
-                    </select>
+                    <label for="feePaymentDate" class="form-label">Payment Date</label>
+                    <input type="date" id="feePaymentDate" name="paymentDate" class="form-control">
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label">Year</label>
-                    <select name="year" id="paymentYear" class="form-control" required>
-                        <!-- Years will be populated by JavaScript -->
-                    </select>
+                    <label for="feeNotes" class="form-label">Notes</label>
+                    <textarea id="feeNotes" name="notes" class="form-control" rows="3"></textarea>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Amount (₹)</label>
-                    <input type="number" name="amount" class="form-control" min="0" step="0.01" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-control" required>
-                        <option value="paid">Paid</option>
-                        <option value="pending">Pending</option>
-                        <option value="overdue">Overdue</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Payment Date</label>
-                    <input type="date" name="paymentDate" class="form-control">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <textarea name="notes" class="form-control" rows="3" placeholder="Payment method, reference number, etc."></textarea>
-                </div>
-                
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn--secondary close-modal">Cancel</button>
                     <button type="submit" class="btn btn--primary">
-                        <i class="fas fa-save"></i> Update Fee Status
+                        <i class="fas fa-save"></i>
+                        Update Fee Status
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Floating Theme Toggle -->
-    <button id="floatingThemeToggle" class="floating-theme-toggle">
-        <i class="fas fa-moon"></i>
-    </button>
-
-    <!-- JavaScript -->
-    <script src="app.js"></script>
-    
-    <!-- Theme and notification fixes -->
-    <script>
-    // Immediate Theme Toggle Fix
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🔧 Applying theme and notification fixes...');
-        
-        // Fix theme toggle functionality
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            console.log('🎨 Switching from', currentTheme, 'to', newTheme);
-            
-            // Apply theme
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            // Update icons
-            updateThemeIcons(newTheme);
-            
-            // Show notification
-            showQuickNotification(`Switched to ${newTheme} mode`, 'info');
-        }
-        
-        function updateThemeIcons(theme) {
-            const themeToggles = document.querySelectorAll('#themeToggle i, #floatingThemeToggle i');
-            themeToggles.forEach(icon => {
-                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            });
-        }
-        
-        function showQuickNotification(message, type = 'info') {
-            // Remove existing notifications
-            const existingNotifications = document.querySelectorAll('.quick-notification');
-            existingNotifications.forEach(notification => notification.remove());
-            
-            const notification = document.createElement('div');
-            notification.className = `quick-notification quick-notification--${type}`;
-            
-            const iconMap = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                warning: 'exclamation-triangle',
-                info: 'info-circle'
-            };
-            
-            const icon = iconMap[type] || iconMap.info;
-            
-            notification.innerHTML = `
-                <div class="quick-notification-content">
-                    <i class="fas fa-${icon}"></i>
-                    <span>${message}</span>
-                </div>
-                <button class="quick-notification-close" onclick="this.parentElement.remove();">
+    <!-- Add Result Modal -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="resultModalTitle">Add Result</h2>
+                <button class="close-modal">
                     <i class="fas fa-times"></i>
                 </button>
-            `;
-            
-            // Apply immediate styles
-            Object.assign(notification.style, {
-                position: 'fixed',
-                top: '80px',
-                right: '20px',
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '12px',
-                padding: '16px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                zIndex: '3000',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                maxWidth: '400px',
-                minWidth: '300px',
-                animation: 'slideInRight 0.4s ease-out',
-                borderLeft: `4px solid ${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'}`
-            });
-            
-            const content = notification.querySelector('.quick-notification-content');
-            Object.assign(content.style, {
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                flex: '1',
-                color: 'var(--color-text)',
-                fontSize: '14px',
-                fontWeight: '500'
-            });
-            
-            const closeBtn = notification.querySelector('.quick-notification-close');
-            Object.assign(closeBtn.style, {
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-text-secondary)',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '24px',
-                height: '24px',
-                transition: 'all 0.2s'
-            });
-            
-            closeBtn.addEventListener('mouseenter', () => {
-                closeBtn.style.background = 'var(--color-border)';
-            });
-            
-            closeBtn.addEventListener('mouseleave', () => {
-                closeBtn.style.background = 'none';
-            });
-            
-            document.body.appendChild(notification);
-            
-            // Auto remove after 4 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.style.animation = 'slideOutRight 0.3s ease-in forwards';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 4000);
+            </div>
+            <form id="resultForm" class="modal-form">
+                <input type="hidden" id="resultId" name="resultId">
+                
+                <div class="form-group">
+                    <label for="resultStudent" class="form-label">Student</label>
+                    <select id="resultStudent" name="studentId" class="form-control" required>
+                        <option value="">Select Student</option>
+                    </select>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="resultExam" class="form-label">Exam Name</label>
+                        <input type="text" id="resultExam" name="examName" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resultSubject" class="form-label">Subject</label>
+                        <input type="text" id="resultSubject" name="subject" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="resultClass" class="form-label">Class</label>
+                        <input type="text" id="resultClass" name="class" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resultDate" class="form-label">Exam Date</label>
+                        <input type="date" id="resultDate" name="examDate" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="resultTotal" class="form-label">Total Marks</label>
+                        <input type="number" id="resultTotal" name="totalMarks" class="form-control" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resultObtained" class="form-label">Marks Obtained</label>
+                        <input type="number" id="resultObtained" name="marksObtained" class="form-control" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="resultRemarks" class="form-label">Remarks</label>
+                    <textarea id="resultRemarks" name="remarks" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn btn--primary">
+                        <i class="fas fa-save"></i>
+                        <span id="resultSubmitText">Add Result</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app-full.js"></script>
+    
+    <style>
+        /* Student-only sections visibility */
+        .student-only {
+            display: none;
         }
         
-        // Initialize theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcons(savedTheme);
-        
-        // Bind theme toggle events
-        const themeToggle = document.getElementById('themeToggle');
-        const floatingThemeToggle = document.getElementById('floatingThemeToggle');
-        
-        if (themeToggle) {
-            themeToggle.addEventListener('click', toggleTheme);
-            console.log('✅ Header theme toggle bound');
+        /* Show student-only sections for students */
+        body[data-user-role="student"] .student-only {
+            display: block !important;
         }
         
-        if (floatingThemeToggle) {
-            floatingThemeToggle.addEventListener('click', toggleTheme);
-            console.log('✅ Floating theme toggle bound');
+        body[data-user-role="student"] .teacher-only {
+            display: none !important;
         }
         
-        // Add CSS animations if not present
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-            
-            .theme-toggle:hover,
-            .floating-theme-toggle:hover {
-                transform: scale(1.05);
-                transition: all 0.2s ease;
-            }
-            
-            .theme-toggle:active,
-            .floating-theme-toggle:active {
-                transform: scale(0.95);
-            }
-            
-            /* Enhanced notification styles for dark mode */
-            [data-theme="dark"] .quick-notification {
-                background: var(--color-surface) !important;
-                border-color: var(--color-border) !important;
-                color: var(--color-text) !important;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4) !important;
-            }
-            
-            [data-theme="dark"] .quick-notification-content {
-                color: var(--color-text) !important;
-            }
-            
-            [data-theme="dark"] .quick-notification-close {
-                color: var(--color-text-secondary) !important;
-            }
-            
-            [data-theme="dark"] .quick-notification-close:hover {
-                background: var(--color-border) !important;
-                color: var(--color-text) !important;
-            }
-            
-            /* Mobile responsive */
-            @media (max-width: 768px) {
-                .quick-notification {
-                    top: 70px !important;
-                    left: 10px !important;
-                    right: 10px !important;
-                    max-width: none !important;
-                    min-width: auto !important;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        console.log('✅ Theme and notification fixes applied successfully!');
-        
-        // Populate years in fee payment modal
-        const currentYear = new Date().getFullYear();
-        const paymentYearSelect = document.getElementById('paymentYear');
-        if (paymentYearSelect) {
-            for (let year = currentYear - 2; year <= currentYear + 1; year++) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                if (year === currentYear) {
-                    option.selected = true;
-                }
-                paymentYearSelect.appendChild(option);
-            }
+        /* Teacher-only sections visibility */
+        body[data-user-role="teacher"] .teacher-only {
+            display: block !important;
         }
-    });
-    </script>
+        
+        body[data-user-role="teacher"] .student-only {
+            display: none !important;
+        }
+    </style>
 </body>
 </html>
