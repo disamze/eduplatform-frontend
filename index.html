@@ -3,187 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TMT Classes - Educational Platform</title>
-    
-    <!-- PERFORMANCE: DNS prefetch for external resources -->
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//images.unsplash.com">
-    
-    <!-- PERFORMANCE: Preload critical resources -->
-    <link rel="preload" href="style.css" as="style">
-    <link rel="preload" href="app-optimized.js" as="script">
-    
-    <!-- PERFORMANCE: Load CSS asynchronously with fallback -->
-    <link rel="preload" href="style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="style.css"></noscript>
-    
-    <!-- PERFORMANCE: Font Awesome with defer -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#21808D">
-    <meta name="description" content="TMT Classes - Online Mathematics Tutorial Platform">
-    <style>
-        /* Critical CSS for initial load */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #fcfcf9;
-            color: #134252;
-        }
-        
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fcfcf9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.3s ease-out;
-        }
-        
-        .loading-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .loading-logo {
-            font-size: 3rem;
-            color: #21808D;
-            margin-bottom: 1rem;
-            animation: pulse 2s infinite;
-        }
-        
-        .loading-text {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            color: #626C71;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #21808D;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Login form critical styles */
-        .login-container {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #21808D, #1A6873);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        
-        .login-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            width: 100%;
-            max-width: 450px;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-bottom: 1rem;
-            box-sizing: border-box;
-        }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-        
-        .btn--primary {
-            background: #21808D;
-            color: white;
-        }
-        
-        .btn--primary:hover {
-            background: #1D7380;
-        }
-        
-        .btn--full-width {
-            width: 100%;
-        }
-    </style>
+    <title>TMT Classes</title>
+    <link rel="shortcut icon" href="./logo.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="loadingScreen" class="loading-screen">
-        <div class="loading-logo">
-            <i class="fas fa-graduation-cap"></i>
-        </div>
-        <h1 class="loading-text">TMT Classes</h1>
-        <div class="loading-spinner"></div>
-        <p style="margin-top: 1rem; color: #626C71;">Loading your dashboard...</p>
-    </div>
+<body cz-shortcut-listen="true">
     <!-- Login Screen -->
-    <div id="loginContainer" class="login-container hidden">
+    <div id="loginScreen" class="login-container">
         <div class="login-card">
             <div class="login-header">
                 <div class="logo-container">
-                    <i class="logo-icon fas fa-graduation-cap"></i>
+                    <i class="fas fa-graduation-cap logo-icon"></i>
+                    <h1>TMT Classes</h1>
                 </div>
-                <h1>TMT Classes</h1>
                 <p>Mathematics Tutorial Platform</p>
             </div>
 
-            <form id="loginForm" class="login-form">
+            <form id="loginForm">
                 <div class="form-group">
                     <label for="loginEmail" class="form-label">Email Address</label>
-                    <input type="email" id="loginEmail" class="form-control" 
-                           placeholder="Enter your email" required autocomplete="username">
+                    <input type="email" id="loginEmail" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="loginPassword" class="form-label">Password</label>
-                    <input type="password" id="loginPassword" class="form-control" 
-                           placeholder="Enter your password" required autocomplete="current-password">
+                    <input type="password" id="loginPassword" class="form-control" required="">
                 </div>
 
-                <button type="submit" class="btn btn--primary btn--full-width">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Sign In
+                <div id="loginError" class="error-message" style="display: none;"></div>
+
+                <button type="submit" id="loginBtn" class="btn btn--primary btn--full-width">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
                 </button>
             </form>
 
@@ -192,162 +43,166 @@
     </div>
 
     <!-- Main Application -->
-    <div id="appContainer" class="app-container hidden">
+    <div id="mainApp" class="app-container hidden">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
+        <nav id="sidebar" class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <i class="fas fa-graduation-cap"></i>
                     <span>TMT Classes</span>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
+                <button id="sidebarToggle" class="sidebar-toggle">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="sidebar-user">
-                <img src="" alt="User Avatar" class="user-avatar" id="userAvatar">
+                <img id="userAvatar" src="https://via.placeholder.com/40" alt="User" class="user-avatar">
                 <div class="user-details">
-                    <div class="user-name" id="userName">Loading...</div>
-                    <div class="user-role" id="userRole">...</div>
+                    <div id="userName" class="user-name">Loading...</div>
+                    <div id="userInfo" class="user-role">Loading...</div>
                 </div>
-            </div>
-
-            <nav>
-                <ul class="sidebar-menu">
-                    <li>
-                        <a href="#" class="sidebar-item active" data-section="dashboard">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-
-                    <!-- Resources Section -->
-                    <li>
-                        <a href="#" class="sidebar-item" data-section="notes">
-                            <i class="fas fa-sticky-note"></i>
-                            <span>Notes</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="sidebar-item" data-section="questions">
-                            <i class="fas fa-question-circle"></i>
-                            <span>Questions</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="sidebar-item" data-section="books">
-                            <i class="fas fa-book"></i>
-                            <span>Books</span>
-                        </a>
-                    </li>
-
-                    <!-- Management Section (Teacher Only) -->
-                    <li class="teacher-only">
-                        <a href="#" class="sidebar-item" data-section="schedule">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Schedule</span>
-                        </a>
-                    </li>
-                    <li class="teacher-only">
-                        <a href="#" class="sidebar-item" data-section="students">
-                            <i class="fas fa-users"></i>
-                            <span>Students</span>
-                        </a>
-                    </li>
-                    <li class="teacher-only">
-                        <a href="#" class="sidebar-item" data-section="fees">
-                            <i class="fas fa-dollar-sign"></i>
-                            <span>Fee Management</span>
-                        </a>
-                    </li>
-                    <li class="teacher-only">
-                        <a href="#" class="sidebar-item" data-section="results">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Results</span>
-                        </a>
-                    </li>
-                    <li class="teacher-only">
-                        <a href="#" class="sidebar-item" data-section="announcements">
-                            <i class="fas fa-bullhorn"></i>
-                            <span>Announcements</span>
-                        </a>
-                    </li>
-
-                    <!-- Student Section -->
-                    <li class="student-only">
-                        <a href="#" class="sidebar-item" data-section="schedule">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Schedule</span>
-                        </a>
-                    </li>
-                    <li class="student-only">
-                        <a href="#" class="sidebar-item" data-section="results">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Results</span>
-                        </a>
-                    </li>
-                    <li class="student-only">
-                        <a href="#" class="sidebar-item" data-section="notices">
-                            <i class="fas fa-bell"></i>
-                            <span>Notice Board</span>
-                        </a>
-                    </li>
-
-                    <!-- Common Sections -->
-                    <li>
-                        <a href="#" class="sidebar-item" data-section="profile">
-                            <i class="fas fa-user"></i>
-                            <span>Profile</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="sidebar-item" data-section="settings">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="sidebar-footer">
-                <button class="btn btn--outline btn--full-width" data-action="logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
+                <button id="themeToggle" class="theme-toggle">
+                    <i class="fas fa-moon"></i>
                 </button>
             </div>
-        </aside>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="#" class="sidebar-item active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                
+                <!-- Teacher Only Sections -->
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="notes">
+                        <i class="fas fa-sticky-note"></i>
+                        <span>Notes</span>
+                    </a>
+                </li>
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="questions">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Questions</span>
+                    </a>
+                </li>
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="books">
+                        <i class="fas fa-book"></i>
+                        <span>Books</span>
+                    </a>
+                </li>
+                
+                <!-- Student Only Sections -->
+                <li class="student-only">
+                    <a href="#" class="sidebar-item" data-section="notes">
+                        <i class="fas fa-sticky-note"></i>
+                        <span>Notes</span>
+                    </a>
+                </li>
+                <li class="student-only">
+                    <a href="#" class="sidebar-item" data-section="questions">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Questions</span>
+                    </a>
+                </li>
+                <li class="student-only">
+                    <a href="#" class="sidebar-item" data-section="books">
+                        <i class="fas fa-book"></i>
+                        <span>Books</span>
+                    </a>
+                </li>
+
+                <!-- Common Sections -->
+                <li>
+                    <a href="#" class="sidebar-item" data-section="schedule">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedule</span>
+                    </a>
+                </li>
+
+                <!-- Teacher Only Sections -->
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="students">
+                        <i class="fas fa-users"></i>
+                        <span>Students</span>
+                    </a>
+                </li>
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="fees">
+                        <i class="fas fa-money-check-alt"></i>
+                        <span>Fee Management</span>
+                    </a>
+                </li>
+
+                <!-- Common Sections -->
+                <li>
+                    <a href="#" class="sidebar-item" data-section="results">
+                        <i class="fas fa-trophy"></i>
+                        <span>Results</span>
+                    </a>
+                </li>
+
+                <!-- Teacher Announcements / Student Notices -->
+                <li class="teacher-only">
+                    <a href="#" class="sidebar-item" data-section="announcements">
+                        <i class="fas fa-bullhorn"></i>
+                        <span>Announcements</span>
+                    </a>
+                </li>
+                <li class="student-only">
+                    <a href="#" class="sidebar-item" data-section="notices">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Notice Board</span>
+                    </a>
+                </li>
+
+                <!-- Profile Section for All Users -->
+                <li>
+                    <a href="#" class="sidebar-item" data-section="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="sidebar-item" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn--secondary btn--full-width">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </nav>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
             <header class="content-header">
                 <div class="header-left">
-                    <button class="mobile-sidebar-toggle" id="mobileSidebarToggle">
+                    <button id="mobileSidebarToggle" class="mobile-sidebar-toggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <h1>Dashboard</h1>
+                    <h1 id="pageTitle">Dashboard</h1>
                 </div>
 
                 <div class="header-right">
-                    <!-- PERFORMANCE: Search will be loaded lazily -->
-                    <div class="search-container" style="display: none;">
-                        <input type="text" class="search-input" id="searchInput" 
-                               placeholder="Search resources...">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="Search...">
                         <i class="fas fa-search search-icon"></i>
                     </div>
-
-                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                        <i class="fas fa-moon"></i>
-                    </button>
                 </div>
             </header>
 
-            <div class="content-area" id="contentArea">
-                <!-- PERFORMANCE: Initial loading state -->
-                <div class="loading-state show" id="contentLoading">
+            <div id="contentArea" class="content-area">
+                <div class="loading-state">
                     <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #21808D;"></i>
+                        <i class="fas fa-spinner fa-spin"></i>
                     </div>
                     <p>Loading content...</p>
                 </div>
@@ -356,65 +211,50 @@
     </div>
 
     <!-- Floating Theme Toggle -->
-    <button class="floating-theme-toggle" id="floatingThemeToggle" style="display: none;" aria-label="Toggle theme">
+    <button id="floatingThemeToggle" class="floating-theme-toggle">
         <i class="fas fa-moon"></i>
     </button>
+
     <!-- Modals -->
     
     <!-- Resource Upload Modal -->
-    <div id="modalsContainer" style="display: none;">
-        <!-- Add Resource Modal -->
-        <div class="modal" id="resourceModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Add Resource</h2>
-                    <button class="close-modal" aria-label="Close modal">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <div id="resourceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="resourceModalTitle">Add Resource</h2>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="resourceForm" class="modal-form">
+                <input type="hidden" id="resourceType" name="type">
+                
+                <div class="form-group">
+                    <label for="resourceTitle" class="form-label">Title</label>
+                    <input type="text" id="resourceTitle" name="title" class="form-control" required="">
                 </div>
 
-                <form id="resourceForm" class="modal-form">
-                    <div class="form-group">
-                        <label for="resourceTitle" class="form-label">Title</label>
-                        <input type="text" id="resourceTitle" name="title" class="form-control" 
-                               placeholder="Enter resource title" required>
-                    </div>
+                <div class="form-group">
+                    <label for="resourceDescription" class="form-label">Description</label>
+                    <textarea id="resourceDescription" name="description" class="form-control" rows="3"></textarea>
+                </div>
 
-                    <div class="form-group">
-                        <label for="resourceDescription" class="form-label">Description</label>
-                        <textarea id="resourceDescription" name="description" class="form-control" 
-                                  placeholder="Enter description (optional)" rows="3"></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="resourceFile" class="form-label">File</label>
+                    <input type="file" id="resourceFile" name="file" class="form-control file-input" required="">
+                    <div class="file-input-help">Max file size: 50MB. Supported formats: PDF, DOC, DOCX, TXT, ZIP, RAR, Images</div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="resourceType" class="form-label">Type</label>
-                        <select id="resourceType" name="type" class="form-control" required>
-                            <option value="">Select type</option>
-                            <option value="note">Note</option>
-                            <option value="question">Question</option>
-                            <option value="book">Book</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="resourceFile" class="form-label">File</label>
-                        <div class="file-input">
-                            <input type="file" id="resourceFile" name="file" class="form-control" 
-                                   required accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif">
-                            <div class="file-input-help">
-                                Max file size: 50MB. Supported formats: PDF, DOC, DOCX, TXT, ZIP, RAR, Images
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn--secondary close-modal">Cancel</button>
-                        <button type="submit" class="btn btn--primary">Upload</button>
-                    </div>
-                </form>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn--secondary close-modal">Cancel</button>
+                    <button type="submit" class="btn btn--primary">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+
     <!-- NEW: Add Student Modal -->
     <div id="addStudentModal" class="modal">
         <div class="modal-content">
@@ -427,17 +267,17 @@
             <form id="addStudentForm" class="modal-form">
                 <div class="form-group">
                     <label for="addStudentName" class="form-label">Full Name</label>
-                    <input type="text" id="addStudentName" name="name" class="form-control" required>
+                    <input type="text" id="addStudentName" name="name" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="addStudentEmail" class="form-label">Email Address</label>
-                    <input type="email" id="addStudentEmail" name="email" class="form-control" required>
+                    <input type="email" id="addStudentEmail" name="email" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="addStudentPassword" class="form-label">Password</label>
-                    <input type="password" id="addStudentPassword" name="password" class="form-control" required>
+                    <input type="password" id="addStudentPassword" name="password" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
@@ -479,7 +319,7 @@
                 
                 <div class="form-group">
                     <label for="announcementTitle" class="form-label">Announcement Title</label>
-                    <input type="text" id="announcementTitle" name="title" class="form-control" required>
+                    <input type="text" id="announcementTitle" name="title" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
@@ -493,7 +333,7 @@
 
                 <div class="form-group">
                     <label for="announcementContent" class="form-label">Content</label>
-                    <textarea id="announcementContent" name="content" class="form-control" rows="5" required></textarea>
+                    <textarea id="announcementContent" name="content" class="form-control" rows="5" required=""></textarea>
                 </div>
 
                 <div class="modal-footer">
@@ -520,12 +360,12 @@
                 
                 <div class="form-group">
                     <label for="editStudentName" class="form-label">Full Name</label>
-                    <input type="text" id="editStudentName" name="name" class="form-control" required>
+                    <input type="text" id="editStudentName" name="name" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="editStudentEmail" class="form-label">Email Address</label>
-                    <input type="email" id="editStudentEmail" name="email" class="form-control" required>
+                    <input type="email" id="editStudentEmail" name="email" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
@@ -567,7 +407,7 @@
                 
                 <div class="form-group">
                     <label for="studentImageFile" class="form-label">Choose Profile Picture</label>
-                    <input type="file" id="studentImageFile" name="profileImage" class="form-control file-input" accept="image/*" required>
+                    <input type="file" id="studentImageFile" name="profileImage" class="form-control file-input" accept="image/*" required="">
                     <div class="file-input-help">Max file size: 5MB. Supported formats: JPG, PNG, GIF</div>
                 </div>
 
@@ -593,13 +433,13 @@
             <form id="feePaymentForm" class="modal-form">
                 <div class="form-group">
                     <label for="feeStudentName" class="form-label">Student Name</label>
-                    <input type="text" id="feeStudentName" class="form-control" readonly>
+                    <input type="text" id="feeStudentName" class="form-control" readonly="">
                     <input type="hidden" id="feeStudentId" name="studentId">
                 </div>
 
                 <div class="form-group">
                     <label for="feeMonth" class="form-label">Month</label>
-                    <select id="feeMonth" name="month" class="form-control" required>
+                    <select id="feeMonth" name="month" class="form-control" required="">
                         <option value="">Select Month</option>
                         <option value="January">January</option>
                         <option value="February">February</option>
@@ -618,17 +458,17 @@
 
                 <div class="form-group">
                     <label for="feeYear" class="form-label">Year</label>
-                    <input type="number" id="feeYear" name="year" class="form-control" min="2020" max="2030" required>
+                    <input type="number" id="feeYear" name="year" class="form-control" min="2020" max="2030" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="feeAmount" class="form-label">Amount (₹)</label>
-                    <input type="number" id="feeAmount" name="amount" class="form-control" min="0" step="0.01" required>
+                    <input type="number" id="feeAmount" name="amount" class="form-control" min="0" step="0.01" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="feeStatus" class="form-label">Status</label>
-                    <select id="feeStatus" name="status" class="form-control" required>
+                    <select id="feeStatus" name="status" class="form-control" required="">
                         <option value="paid">Paid</option>
                         <option value="pending">Pending</option>
                         <option value="overdue">Overdue</option>
@@ -669,39 +509,39 @@
                 
                 <div class="form-group">
                     <label for="resultStudent" class="form-label">Student</label>
-                    <select id="resultStudent" name="studentId" class="form-control" required>
+                    <select id="resultStudent" name="studentId" class="form-control" required="">
                         <option value="">Select Student</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="resultExamName" class="form-label">Exam Name</label>
-                    <input type="text" id="resultExamName" name="examName" class="form-control" required>
+                    <input type="text" id="resultExamName" name="examName" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="resultSubject" class="form-label">Subject</label>
-                    <input type="text" id="resultSubject" name="subject" class="form-control" required>
+                    <input type="text" id="resultSubject" name="subject" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="resultClass" class="form-label">Class</label>
-                    <input type="text" id="resultClass" name="class" class="form-control" required>
+                    <input type="text" id="resultClass" name="class" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="resultExamDate" class="form-label">Exam Date</label>
-                    <input type="date" id="resultExamDate" name="examDate" class="form-control" required>
+                    <input type="date" id="resultExamDate" name="examDate" class="form-control" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="resultTotalMarks" class="form-label">Total Marks</label>
-                    <input type="number" id="resultTotalMarks" name="totalMarks" class="form-control" min="1" required>
+                    <input type="number" id="resultTotalMarks" name="totalMarks" class="form-control" min="1" required="">
                 </div>
 
                 <div class="form-group">
                     <label for="resultMarksObtained" class="form-label">Marks Obtained</label>
-                    <input type="number" id="resultMarksObtained" name="marksObtained" class="form-control" min="0" required>
+                    <input type="number" id="resultMarksObtained" name="marksObtained" class="form-control" min="0" required="">
                 </div>
 
                 <div class="form-group">
@@ -1036,91 +876,8 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-    <script>
-        // PERFORMANCE: Minimal critical JavaScript for initial load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Hide loading screen after a minimum time
-            setTimeout(() => {
-                const loadingScreen = document.getElementById('loadingScreen');
-                const loginContainer = document.getElementById('loginContainer');
-                
-                loadingScreen.classList.add('hidden');
-                
-                // Show login by default
-                setTimeout(() => {
-                    loginContainer.classList.remove('hidden');
-                    loadingScreen.style.display = 'none';
-                }, 300);
-            }, 1000); // Show loading for at least 1 second
-            
-            // PERFORMANCE: Load modals container when needed
-            function loadModals() {
-                const modalsContainer = document.getElementById('modalsContainer');
-                if (modalsContainer) {
-                    modalsContainer.style.display = 'block';
-                }
-            }
-            
-            // Load modals when user interacts with the app
-            document.addEventListener('click', function(e) {
-                if (e.target.matches('[data-action]')) {
-                    loadModals();
-                }
-            }, { once: true });
-            
-            // PERFORMANCE: Enable search only when needed
-            function enableSearch() {
-                const searchContainer = document.querySelector('.search-container');
-                if (searchContainer) {
-                    searchContainer.style.display = 'block';
-                }
-            }
-            
-            // Show search when user navigates to resource sections
-            document.addEventListener('click', function(e) {
-                if (e.target.matches('.sidebar-item[data-section*="note"], .sidebar-item[data-section*="question"], .sidebar-item[data-section*="book"]')) {
-                    enableSearch();
-                }
-            });
-        });
-
-        // PERFORMANCE: Service Worker for caching (optional)
-        if ('serviceWorker' in navigator && location.protocol === 'https:') {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-        }
-    </script>
 
     <script src="app.js"></script>
-    <script>
-        // Ensure CSS is loaded
-        function loadCSS() {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'style.css';
-            document.head.appendChild(link);
-        }
-        
-        // Check if CSS loaded, if not load it
-        setTimeout(() => {
-            const testElement = document.createElement('div');
-            testElement.className = 'btn';
-            document.body.appendChild(testElement);
-            
-            const styles = window.getComputedStyle(testElement);
-            if (!styles.display || styles.display === 'block') {
-                loadCSS();
-            }
-            
-            document.body.removeChild(testElement);
-        }, 100);
-    </script>
+
 </body>
 </html>
